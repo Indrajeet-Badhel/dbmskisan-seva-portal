@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Account Management</title>
+    <link rel="stylesheet" href="bank.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">🌾 Farmer Bank System</div>
+        <ul class="navbar-links">
+            <li><a href="#add-farmer">Farmer</a></li>
+            <li><a href="#policies-section">Crop</a></li>
+            <li><a href="bank.html">Bank</a></li>
+            <li><a href="#farmer-actions">Tax Details</a></li>
+            <li><a href="#filter-section">Government Schemes</a></li>
+            
+        </ul>
+    </nav>
+
+    <div id="main-content">
+        <!-- Setup Section -->
+        <section id="setup-section" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+            <h2>⚙️ Database Setup</h2>
+            <p style="margin-bottom: 15px;">Click below to create database objects (views, triggers, procedures). Run this once after database creation.</p>
+            <button id="setup-db-btn" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">Initialize Database Objects</button>
+            <div id="setup-status" style="margin-top: 10px; font-weight: 600;"></div>
+        </section>
+
+        <!-- Farmer Selection Section -->
+        <section id="farmer-selection">
+            <h2>👨‍🌾 Select Farmer</h2>
+            <form id="farmer-select-form">
+                <select id="farmer-dropdown" required>
+                    <option value="">-- Select a Farmer --</option>
+                </select>
+                <button type="submit">Load Farmer Details</button>
+            </form>
+            <p id="selected-farmer-info" style="color: #666; margin-top: 15px;">
+                No farmer selected
+            </p>
+        </section>
+
+        <!-- Bank Accounts Overview -->
+        <section id="accounts-overview">
+            <h2>💳 Bank Accounts</h2>
+            <div id="accounts-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="summary-card">
+                    <h4>Total Accounts</h4>
+                    <p id="total-accounts">0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Total Balance</h4>
+                    <p id="total-balance">₹0.00</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Primary Account</h4>
+                    <p id="primary-account">None</p>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bank ID</th>
+                            <th>Bank Name</th>
+                            <th>Account Type</th>
+                            <th>Account Number</th>
+                            <th>Branch</th>
+                            <th>IFSC</th>
+                            <th>Balance</th>
+                            <th>Primary</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accounts-table-body">
+                        <tr><td colspan="9" style="text-align:center;">Select a farmer to view accounts</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button onclick="showAddAccountForm()">➕ Add New Bank Account</button>
+            </div>
+        </section>
+
+        <!-- Add/Edit Account Form -->
+        <div id="account-form-container" style="display: none;">
+            <section>
+                <h2 id="account-form-title">Add New Bank Account</h2>
+                <form id="account-form">
+                    <input type="text" id="Bank_Name" placeholder="Bank Name" required>
+                    <select id="Account_Type" required>
+                        <option value="">Select Account Type</option>
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                        <option value="Fixed Deposit">Fixed Deposit</option>
+                    </select>
+                    <input type="text" id="Branch" placeholder="Branch" required>
+                    <input type="text" id="IFSC" placeholder="IFSC Code" maxlength="11" required>
+                    <input type="text" id="Account_Number" placeholder="Account Number" required>
+                    <input type="number" id="Account_Balance" placeholder="Initial Balance" step="0.01" value="0.00">
+                    <div style="grid-column: span 2;">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="Is_Primary" style="width: auto;">
+                            <span>Set as Primary Account</span>
+                        </label>
+                    </div>
+                    <button type="submit" id="account-form-submit-btn">Add Account</button>
+                    <button type="button" onclick="hideAccountForm()">Cancel</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- Transactions Section -->
+        <section id="transactions-section">
+            <h2>💰 Transactions</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>Perform Transaction</h3>
+                <form id="transaction-form">
+                    <select id="transaction-account" required>
+                        <option value="">Select Account</option>
+                    </select>
+                    <select id="Transaction_Type" required>
+                        <option value="">Transaction Type</option>
+                        <option value="Deposit">Deposit</option>
+                        <option value="Withdrawal">Withdrawal</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Policy_Disbursement">Policy Disbursement</option>
+                        <option value="Tax_Payment">Tax Payment</option>
+                    </select>
+                    <input type="number" id="Amount" placeholder="Amount" step="0.01" required>
+                    <input type="text" id="Description" placeholder="Description (optional)">
+                    <input type="text" id="Reference_Number" placeholder="Reference Number (optional)">
+                    <select id="To_Bank_ID" style="display: none;">
+                        <option value="">Select Destination Account</option>
+                    </select>
+                    <button type="submit">Execute Transaction</button>
+                </form>
+            </div>
+
+            <h3>Transaction History</h3>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="date" id="txn-from-date" placeholder="From Date">
+                <input type="date" id="txn-to-date" placeholder="To Date">
+                <button onclick="loadTransactionHistory()">🔍 Filter</button>
+                <button onclick="clearTransactionFilters()">Clear</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Account</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Balance Before</th>
+                            <th>Balance After</th>
+                            <th>Reference</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+                        <tr><td colspan="9" style="text-align:center;">No transactions found</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Filter & Reports Section -->
+        <section id="filter-section">
+            <h2>🔍 Advanced Filter & Reports</h2>
+            <form id="filter-form">
+                <input type="text" id="filter-name" placeholder="Farmer Name">
+                <input type="text" id="filter-state" placeholder="State">
+                <input type="number" id="filter-minBalance" placeholder="Min Balance" step="0.01">
+                <input type="number" id="filter-maxBalance" placeholder="Max Balance" step="0.01">
+                <select id="filter-cropType">
+                    <option value="">All Crop Types</option>
+                    <option value="Rabi">Rabi</option>
+                    <option value="Kharif">Kharif</option>
+                    <option value="Zaid">Zaid</option>
+                    <option value="Wheat">Wheat</option>
+                    <option value="Rice">Rice</option>
+                    <option value="Cotton">Cotton</option>
+                    <option value="Sugarcane">Sugarcane</option>
+                    <option value="Maize">Maize</option>
+                </select>
+                <select id="filter-taxStatus">
+                    <option value="">All Tax Status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Exempted">Exempted</option>
+                </select>
+                <button type="submit">Apply Filters</button>
+                <button type="button" onclick="resetFilters()">Reset</button>
+            </form>
+
+            <div id="filter-results" style="margin-top: 20px; display: none;">
+                <h3>Filter Results</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Farmer ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Bank</th>
+                                <th>Account Balance</th>
+                                <th>Crops</th>
+                                <th>Tax Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filter-results-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Overview Section -->
+        <section id="reports-section">
+            <h2>📊 Bank Overview Report</h2>
+            <button onclick="loadBankOverview()">Load Overview</button>
+            <div id="overview-results" style="margin-top: 20px; display: none;">
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Farmer ID</th>
+                                <th>Farmer Name</th>
+                                <th>Email</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Bank Name</th>
+                                <th>Account Number</th>
+                                <th>Account Balance</th>
+                                <th>Total Balance</th>
+                                <th>Primary</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overview-results-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit Account Modal -->
+    <div id="edit-account-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>Edit Bank Account</h3>
+            <form id="edit-account-form">
+                <input type="hidden" id="edit-Bank_ID">
+                <input type="text" id="edit-Bank_Name" placeholder="Bank Name" required>
+                <select id="edit-Account_Type" required>
+                    <option value="Savings">Savings</option>
+                    <option value="Current">Current</option>
+                    <option value="Fixed Deposit">Fixed Deposit</option>
+                </select>
+                <input type="text" id="edit-Branch" placeholder="Branch" required>
+                <input type="text" id="edit-IFSC" placeholder="IFSC Code" maxlength="11" required>
+                <input type="text" id="edit-Account_Number" placeholder="Account Number" required>
+                <input type="number" id="edit-Account_Balance" placeholder="Balance" step="0.01">
+                <button type="submit">Update Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="bank.js"></script>
+</body>
+</html>

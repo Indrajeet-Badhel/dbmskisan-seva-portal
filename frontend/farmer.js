@@ -331,62 +331,83 @@ async function viewBank() {
     
     try {
         const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/bank`);
-        const data = res.ok ? await res.json() : null;
+        let accounts = res.ok ? await res.json() : [];
+        
+        // Handle case where backend returns single object instead of array
+        if (accounts && !Array.isArray(accounts)) {
+            accounts = [accounts];
+        }
+        
+        // Handle null or undefined
+        if (!accounts) {
+            accounts = [];
+        }
 
         clearDetails();
+        
+        // Calculate total balance
+        const totalBalance = accounts.reduce((sum, acc) => sum + parseFloat(acc.Account_Balance || 0), 0);
+        const primaryAccount = accounts.find(acc => acc.Is_Primary);
+        
         detailsContainer.innerHTML = `
             <h3>🏦 Bank Details for ${currentFarmerName}</h3>
-            ${data ? `
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><b>Bank Name:</b> ${data.Bank_Name}</p>
-                    <p><b>Account Type:</b> ${data.Account_Type}</p>
-                    <p><b>Branch:</b> ${data.Branch}</p>
-                    <p><b>IFSC:</b> ${data.IFSC}</p>
-                    <p><b>Account Number:</b> ${data.Account_Number}</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Total Accounts</h4>
+                    <p style="margin: 0; font-size: 24px; font-weight: bold; color: #28a745;">${accounts.length}</p>
                 </div>
-            ` : `<p style="color: #999;">No bank details found.</p>`}
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Total Balance</h4>
+                    <p style="margin: 0; font-size: 24px; font-weight: bold; color: #28a745;">₹${totalBalance.toFixed(2)}</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">Primary Account</h4>
+                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #28a745;">${primaryAccount ? primaryAccount.Bank_Name : 'None'}</p>
+                </div>
+            </div>
+            
+            ${accounts.length > 0 ? `
+                <h4>All Bank Accounts</h4>
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden;">
+                        <thead style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left;">Bank Name</th>
+                                <th style="padding: 12px; text-align: left;">Account Type</th>
+                                <th style="padding: 12px; text-align: left;">Account Number</th>
+                                <th style="padding: 12px; text-align: left;">Branch</th>
+                                <th style="padding: 12px; text-align: left;">IFSC</th>
+                                <th style="padding: 12px; text-align: right;">Balance</th>
+                                <th style="padding: 12px; text-align: center;">Primary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${accounts.map(acc => `
+                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                    <td style="padding: 12px;">${acc.Bank_Name}</td>
+                                    <td style="padding: 12px;">${acc.Account_Type}</td>
+                                    <td style="padding: 12px;">${acc.Account_Number}</td>
+                                    <td style="padding: 12px;">${acc.Branch}</td>
+                                    <td style="padding: 12px;">${acc.IFSC}</td>
+                                    <td style="padding: 12px; text-align: right;">₹${parseFloat(acc.Account_Balance || 0).toFixed(2)}</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        ${acc.Is_Primary ? '<span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Primary</span>' : '<span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Secondary</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : `<p style="color: #999; padding: 20px; text-align: center; background: #f8f9fa; border-radius: 8px;">No bank accounts found.</p>`}
 
-            <h4>Add/Update Bank Account</h4>
-            <form id="bank-form" style="display: grid; gap: 10px;">
-                <input type="text" placeholder="Bank Name" id="Bank_Name" required>
-                <select id="Account_Type" required>
-                    <option value="">Select Account Type</option>
-                    <option value="Savings">Savings</option>
-                    <option value="Current">Current</option>
-                    <option value="Fixed Deposit">Fixed Deposit</option>
-                </select>
-                <input type="text" placeholder="Branch" id="Branch" required>
-                <input type="text" placeholder="IFSC Code" id="IFSC" maxlength="11" required>
-                <input type="text" placeholder="Account Number" id="Account_Number" required>
-                <button type="submit">Save Bank Details</button>
-            </form>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #1976d2; margin-top: 20px;">
+                <p style="margin: 0; color: #1976d2;">
+                    <strong>💡 Tip:</strong> To add, edit, or manage bank accounts in detail, please visit the 
+                    <a href="bank.html" style="color: #1976d2; font-weight: bold;">Bank Management Page</a>.
+                </p>
+            </div>
         `;
-
-        document.getElementById('bank-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const payload = {
-                Bank_Name: document.getElementById('Bank_Name').value,
-                Account_Type: document.getElementById('Account_Type').value,
-                Branch: document.getElementById('Branch').value,
-                IFSC: document.getElementById('IFSC').value,
-                Account_Number: document.getElementById('Account_Number').value
-            };
-
-            try {
-                const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/bank`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                alert(data.message);
-                viewBank();
-            } catch (error) {
-                console.error('Error saving bank details:', error);
-                alert('Failed to save bank details');
-            }
-        };
     } catch (error) {
         console.error('Error viewing bank:', error);
         alert('Failed to load bank details');
