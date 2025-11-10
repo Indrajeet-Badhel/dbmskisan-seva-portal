@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farmer Bank — Crop Management</title>
+  <link rel="stylesheet" href="farmer.css">
+  <style>
+    #main-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    h1.page-title { color: #214d2b; margin: 12px 0 20px; text-align: center; }
+    .grid { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+    .card { background:#fff; padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.04); width:100%; }
+    .left { flex:1 1 640px; }
+    .right { flex: 0 0 360px; }
+    label { display:block; margin:8px 0; font-size:14px; color:#333; }
+    input, select, button { width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid #e0e0e0; margin-top:6px; }
+    .row { display:flex; gap:10px; }
+    .row > * { flex:1 }
+    table { width:100%; border-collapse:collapse; background:#fff; margin-top:12px; border-radius:8px; overflow:hidden; }
+    th, td { padding:10px 12px; border-bottom:1px solid #f0f0f0; text-align:left; font-size:14px; }
+    th { background: linear-gradient(90deg,#2d6a2d,#1f4a1f); color:#fff; font-weight:600; }
+    .actions button { margin-right:6px; padding:6px 8px; border-radius:6px; cursor:pointer; }
+    .btn-delete { background:#e14d4d; color:#fff; }
+    .btn-edit { background:#2d6aef; color:#fff; }
+    .small { font-size:13px; color:#666; }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+        <div class="navbar-brand">🌾 Kisan Seva Portal</div>
+        <ul class="navbar-links">
+            <li><a href="farmer.html">Farmer</a></li>
+            <li><a href="crop.html">Crop</a></li>
+            <li><a href="bank.html">Bank</a></li>
+            <li><a href="farmertaxdashboard.html">Tax Details</a></li>
+            <li><a href="#filter-section">Government Schemes</a></li>
+            
+        </ul>
+    </nav>
+
+  <div id="main-content">
+    <h1 class="page-title">Crop Management</h1>
+
+    <div class="grid">
+      <div class="left card">
+        <h3>Add / Edit Crop</h3>
+
+        <form id="crop-form">
+          <input type="hidden" id="editing-id">
+
+          <label>Crop Name
+            <input type="text" id="Crop_Name" required>
+          </label>
+
+          <label>Farmer
+            <select id="Farmer_ID" required>
+              <option value="">Loading farmers...</option>
+            </select>
+          </label>
+
+          <div class="row">
+            <label>Type
+              <select id="Type">
+                <option value="">Select</option>
+                <option>Rabi</option>
+                <option>Kharif</option>
+                <option>Zaid</option>
+              </select>
+            </label>
+
+            <label>Season Year
+              <input type="number" id="Season_Year" placeholder="2025">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>Harvest Start
+              <input type="date" id="Harvest_Start">
+            </label>
+
+            <label>Harvest End
+              <input type="date" id="Harvest_End">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>Area Planted (acres)
+              <input type="number" id="Area_Planted" step="0.01">
+            </label>
+
+            <label>Expected Yield (kg)
+              <input type="number" id="Expected_Yield" step="0.01">
+            </label>
+          </div>
+
+          <div class="row">
+            <label>Price per unit
+              <input type="number" id="Price_Per_Unit" step="0.01">
+            </label>
+
+            <label>Quantity Available
+              <input type="number" id="Quantity_Available">
+            </label>
+          </div>
+
+          <label>Fertilizers Used
+            <input type="text" id="Fertilizers_Used">
+          </label>
+
+          <div class="row">
+            <button type="submit">Save Crop</button>
+            <button type="button" id="clear-form">Clear</button>
+          </div>
+        </form>
+
+        <h3>All Crops</h3>
+        <p id="results-info" class="small">Loading...</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Crop</th>
+              <th>Farmer</th>
+              <th>Type</th>
+              <th>Season</th>
+              <th>Harvest</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="crop-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="right card">
+        <h3>Filters</h3>
+
+        <form id="filter-form">
+          <label>Crop Name
+            <input type="text" id="filter-name">
+          </label>
+
+          <label>Type
+            <select id="filter-type">
+              <option value="">All</option>
+              <option>Rabi</option>
+              <option>Kharif</option>
+              <option>Zaid</option>
+            </select>
+          </label>
+
+          <label>Season Year
+            <input type="number" id="filter-season">
+          </label>
+
+          <label>Price Range
+            <div class="row">
+              <input type="number" id="filter-min-price" placeholder="Min">
+              <input type="number" id="filter-max-price" placeholder="Max">
+            </div>
+          </label>
+
+          <label>Quantity Range
+            <div class="row">
+              <input type="number" id="filter-min-qty" placeholder="Min">
+              <input type="number" id="filter-max-qty" placeholder="Max">
+            </div>
+          </label>
+
+          <div class="row">
+            <button type="button" id="apply-filters">Apply</button>
+            <button type="button" id="reset-filters">Reset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="crop.js"></script>
+</body>
+</html>
