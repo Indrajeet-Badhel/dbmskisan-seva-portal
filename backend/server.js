@@ -380,19 +380,19 @@ app.get('/farmers', (req, res) => {
 });
 
 // GET farmers with filter
-app.get('/farmers/filter', (req, res) => {
-    const { name } = req.query;
-    let sql = `SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details WHERE 1=1`;
-    const params = [];
-    if (name) {
-        sql += ` AND (First_Name LIKE ? OR Last_Name LIKE ? OR Email_ID LIKE ?)`;
-        params.push(`%${name}%`, `%${name}%`, `%${name}%`);
-    }
-    db.query(sql, params, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
-});
+// app.get('/farmers/filter', (req, res) => {
+//     const { name } = req.query;
+//     let sql = `SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details WHERE 1=1`;
+//     const params = [];
+//     if (name) {
+//         sql += ` AND (First_Name LIKE ? OR Last_Name LIKE ? OR Email_ID LIKE ?)`;
+//         params.push(`%${name}%`, `%${name}%`, `%${name}%`);
+//     }
+//     db.query(sql, params, (err, results) => {
+//         if (err) return res.status(500).json({ error: err.message });
+//         res.json(results);
+//     });
+// });
 app.get('/farmers/:id/tax-summary', (req, res) => {
     const farmerId = req.params.id;
     const sql = `
@@ -1768,13 +1768,13 @@ app.post('/setup/dbobjects', (req, res) => {
     // Run each query sequentially
     queries.forEach((query) => {
       db.query(query, (err) => {
-        if (err) console.error('❌ Error creating object:', err.message);
+        if (err) console.error(' Error creating object:', err.message);
       });
     });
 
-    res.json({ message: '✅ Database objects (views/triggers) initialized successfully!' });
+    res.json({ message: ' Database objects (views/triggers) initialized successfully!' });
   } catch (error) {
-    console.error('❌ Setup DB error:', error);
+    console.error('Setup DB error:', error);
     res.status(500).json({ error: error.message });
   }
 });

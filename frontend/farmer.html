@@ -1,434 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farmer Bank Management - Fixed</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #f5f7f5;
-            color: #1a1a1a;
-            line-height: 1.6;
-        }
-
-        .navbar {
-            background: #146c43;
-            color: #fff;
-            padding: 0 40px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand {
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-        }
-
-        #main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        section {
-            background: #fff;
-            border-radius: 8px;
-            padding: 32px;
-            margin-bottom: 24px;
-            border: 1px solid #e5e5e5;
-        }
-
-        h2 {
-            color: #1a1a1a;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            letter-spacing: -0.3px;
-        }
-
-        form {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        input,
-        select,
-        textarea {
-            padding: 10px 12px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            font-family: inherit;
-            transition: all 0.15s;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #146c43;
-            box-shadow: 0 0 0 3px rgba(20, 108, 67, 0.1);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #374151;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s;
-            font-family: inherit;
-        }
-
-        button[type="submit"] {
-            background: #1f8a59;
-            color: white;
-            grid-column: 1 / -1;
-        }
-
-        button[type="submit"]:hover {
-            background: #20935d;
-        }
-
-        .status-message {
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .status-message.success {
-            background: #d1fae5;
-            color: #07926b;
-            border-left: 4px solid #07926b;
-            display: block;
-        }
-
-        .status-message.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #991b1b;
-            display: block;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 16px;
-            border-radius: 8px;
-            border: 1px solid #e5e5e5;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-        }
-
-        thead {
-            background: #f9fafb;
-            border-bottom: 1px solid #e5e5e5;
-        }
-
-        th {
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        td {
-            padding: 14px 16px;
-            font-size: 14px;
-            color: #1a1a1a;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        tbody tr:hover {
-            background: #f9fafb;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            font-size: 13px;
-            margin-right: 4px;
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #e5e7eb;
-        }
-
-        .action-btn:hover {
-            background: #e5e7eb;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Management Portal</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Segoe UI',sans-serif;
+      background:#f5f7f5;
+      color:#1a1a1a;
+      line-height:1.6;
+    }
+    .navbar {
+      background:#146c43;
+      color:#fff;
+      padding:0 40px;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .navbar a { color:#fff; text-decoration:none; margin:0 10px; }
+    section {
+      background:#fff;
+      border:1px solid #e5e5e5;
+      border-radius:8px;
+      padding:32px;
+      margin:24px auto;
+      max-width:1200px;
+    }
+    h2 { margin-bottom:16px; color:#14532d; }
+    form {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:16px;
+    }
+    input,select,textarea {
+      padding:10px; border:1px solid #ccc; border-radius:6px;
+    }
+    button {
+      padding:10px 20px; border:none; border-radius:6px; cursor:pointer;
+      font-weight:600;
+    }
+    button[type="submit"] { background:#146c43; color:#fff; }
+    button[type="button"] { background:#991b1b; color:#fff; }
+    #results-info,#selected-farmer-info {
+      background:#f9fafb; padding:10px 14px; border-left:4px solid #146c43;
+      margin-bottom:12px; border-radius:6px;
+    }
+    table { width:100%; border-collapse:collapse; }
+    th,td {
+      padding:12px; border-bottom:1px solid #e5e5e5; text-align:left;
+    }
+    tr:hover { background:#f9fafb; }
+    .manage-actions {
+      display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
+      margin-top:10px;
+    }
+    .manage-actions button {
+      background:#fff; color:#146c43; border:1px solid #146c43;
+    }
+    .manage-actions button:hover {
+      background:#146c43; color:#fff;
+    }
+    #details-container {
+      margin-top:16px; background:#fff; border:1px solid #ddd;
+      border-radius:8px; padding:24px;
+    }
+    .modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.4); z-index:999;
+    }
+    .modal-content {
+      background:#fff; border-radius:8px; width:90%; max-width:500px;
+      margin:10% auto; padding:24px; position:relative;
+    }
+    .close {
+      position:absolute; right:15px; top:10px; font-size:28px; cursor:pointer;
+      color:#666;
+    }
+    #phone-list li {
+      background:#f9fafb; border-left:3px solid #146c43;
+      margin:6px 0; padding:8px 12px; border-radius:4px;
+    }
+  </style>
 </head>
-
 <body>
-    <nav class="navbar">
-        <div class="navbar-brand">🌾 Kisan Seva Portal</div>
-        <ul class="navbar-links">
-            <li><a href="farmer.html">Farmer Portal</a></li>
-            <li><a href="crop.html">Crop Portal</a></li>
-            <li><a href="bank.html">Bank Portal</a></li>
-            <li><a href="farmertaxdashboard.html">Tax Portal</a></li>
-            <li><a href="policies.html">Schemes Portal</a></li>
-        </ul>
-    </nav>
-
-    <div id="main-content">
-        <!-- Add Farmer Section -->
-        <section id="add-farmer">
-            <h2>Add New Farmer</h2>
-            <div id="status-message" class="status-message"></div>
-            <form id="farmer-form">
-
-                <div class="form-group">
-                    <label for="FirstName">First Name</label>
-                    <input type="text" id="FirstName" name="FirstName" required>
-                </div>
-                <div class="form-group">
-                    <label for="LastName">Last Name</label>
-                    <input type="text" id="LastName" name="LastName" required>
-                </div>
-                <div class="form-group">
-                    <label for="EmailID">Email</label>
-                    <input type="email" id="EmailID" name="EmailID" required>
-                </div>
-                <div class="form-group">
-                    <label for="DateofBirth">Date of Birth</label>
-                    <input type="date" id="DateofBirth" name="DateofBirth" required>
-                </div>
-                <div class="form-group">
-                    <label for="Gender">Gender</label>
-                    <select id="Gender" name="Gender" required>
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="Street">Street</label>
-                    <input type="text" id="Street" name="Street">
-                </div>
-                <div class="form-group">
-                    <label for="City">City</label>
-                    <input type="text" id="City" name="City" required>
-                </div>
-                <div class="form-group">
-                    <label for="State">State</label>
-                    <input type="text" id="State" name="State" required>
-                </div>
-                <div class="form-group">
-                    <label for="PinCode">PinCode</label>
-                    <input type="text" id="PinCode" name="PinCode" required pattern="\d{6}"
-                        title="Please enter a 6-digit pincode">
-                </div>
-                <div class="form-group">
-                    <label for="LandSize">Land Size (acres)</label>
-                    <input type="number" step="0.01" id="LandSize" name="LandSize" required min="0">
-                </div>
-                <div class="form-group">
-                    <label for="AadharNumber">Aadhar Number</label>
-                    <input type="text" id="AadharNumber" name="AadharNumber" maxlength="12">
-                </div>
-                <div class="form-group">
-                    <label for="PANNumber">PAN Number</label>
-                    <input type="text" id="PANNumber" name="PANNumber" maxlength="10">
-                </div>
-                <button type="submit">Add Farmer</button>
-
-
-            </form>
-        </section>
-
-        <!-- Farmers List -->
-        <section id="farmers-list">
-            <h2>All Farmers</h2>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>City</th>
-                            <th>State</th>
-                            <th>Land Size</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="farmers-table-body">
-                        <tr>
-                            <td colspan="7" style="text-align:center;">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+  <nav class="navbar">
+    <div>🌾 Kisan Seva Portal</div>
+    <div>
+      <a href="farmer.html">Farmer</a>
+      <a href="crop.html">Crop</a>
+      <a href="bank.html">Bank</a>
+      <a href="farmertaxdashboard.html">Tax</a>
+      <a href="policies.html">Schemes</a>
     </div>
+  </nav>
 
-    <script>
-        const apiBase = 'http://localhost:5000';
-        const farmerForm = document.getElementById('farmer-form');
-        const farmersTableBody = document.getElementById('farmers-table-body');
-        const statusMessage = document.getElementById('status-message');
+  <section id="add-farmer">
+    <h2>Add / Update Farmer</h2>
+    <form id="farmer-form">
+      <input id="First_Name" placeholder="First Name" required />
+      <input id="Last_Name" placeholder="Last Name" required />
+      <input id="Email_ID" type="email" placeholder="Email" required />
+      <input id="Date_of_Birth" type="date" required />
+      <select id="Gender" required>
+        <option value="">Select Gender</option>
+        <option>Male</option><option>Female</option><option>Other</option>
+      </select>
+      <input id="Street" placeholder="Street" />
+      <input id="City" placeholder="City" required />
+      <input id="State" placeholder="State" required />
+      <input id="PinCode" placeholder="Pincode" required />
+      <input id="Land_Size" type="number" step="0.01" placeholder="Land Size" required />
+      <button type="submit">Add Farmer</button>
+    </form>
+  </section>
 
-        // Show status message
-        function showStatus(message, type) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message ${type}`;
-            setTimeout(() => {
-                statusMessage.className = 'status-message';
-            }, 5000);
-        }
+  <section id="filter-section">
+    <h2>Search & Filter Farmers</h2>
+    <form id="filter-form">
+      <input id="searchName" placeholder="Search by name" />
+      <input id="minLandSize" type="number" placeholder="Min Land Size" />
+      <input id="maxLandSize" type="number" placeholder="Max Land Size" />
+      <input id="state" placeholder="State" />
+      <select id="taxStatus">
+        <option value="">All Tax Status</option>
+        <option>Paid</option><option>Unpaid</option>
+        <option>Overdue</option><option>Exempted</option>
+      </select>
+      <select id="cropType">
+        <option value="">All Crop Types</option>
+        <option>Rabi</option><option>Kharif</option><option>Zaid</option>
+      </select>
+      <input id="regStart" type="date" />
+      <input id="regEnd" type="date" />
+      <button type="submit">Apply Filters</button>
+      <button type="button" id="resetFilters">Reset</button>
+    </form>
+  </section>
 
-        // Fetch and display farmers
-        async function fetchFarmers() {
-            try {
-                const res = await fetch(`${apiBase}/farmers`);
-                if (!res.ok) throw new Error('Failed to fetch farmers');
-                const farmers = await res.json();
-                displayFarmers(farmers);
-            } catch (error) {
-                console.error('Error fetching farmers:', error);
-                farmersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: red;">Failed to load farmers</td></tr>';
-            }
-        }
+  <section id="farmers-list">
+    <h2>All Farmers</h2>
+    <div id="results-info">Showing all farmers</div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Email</th><th>City</th>
+          <th>State</th><th>Land Size</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="farmers-table-body">
+        <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </section>
 
-        function displayFarmers(farmers) {
-            farmersTableBody.innerHTML = '';
+  <section id="farmer-actions">
+    <h2>Manage Farmer Details</h2>
+    <p id="selected-farmer-info">
+      Select a farmer from the table above to manage their details.
+    </p>
+    <div class="manage-actions">
+      <button onclick="viewBank()">Bank Details</button>
+      <button onclick="viewCrops()">Crops</button>
+      <button onclick="viewPolicies()">Policies</button>
+      <button onclick="viewTax()">Tax</button>
+      <button onclick="viewPhones()">Phone Numbers</button>
+    </div>
+  </section>
 
-            if (farmers.length === 0) {
-                farmersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No farmers found</td></tr>';
-                return;
-            }
+  <div id="details-container"></div>
 
-            farmers.forEach(f => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${f.Farmer_ID}</td>
-                    <td>${f.First_Name} ${f.Last_Name}</td>
-                    <td>${f.Email_ID}</td>
-                    <td>${f.City}</td>
-                    <td>${f.State}</td>
-                    <td>${f.Land_Size} acres</td>
-                    <td>
-                        <button class="action-btn" onclick="deleteFarmer(${f.Farmer_ID})">Delete</button>
-                    </td>
-                `;
-                farmersTableBody.appendChild(tr);
-            });
-        }
+  <!-- Phone Modal -->
+  <div id="phone-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Phone Numbers for <span id="farmer-name"></span></h3>
+      <ul id="phone-list"></ul>
+      <div style="margin-top:15px;display:flex;gap:8px;">
+        <input type="text" id="new-phone" placeholder="Add Phone Number" maxlength="15" style="flex:1;">
+        <button id="add-phone-btn">Add Phone</button>
+      </div>
+    </div>
+  </div>
 
-        // Add farmer form submission
-        farmerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Collect form data
-            const formData = new FormData(farmerForm);
-            const data = {};
-
-            formData.forEach((value, key) => {
-                switch (key) {
-                    case "FirstName": data.First_Name = value; break;
-                    case "LastName": data.Last_Name = value; break;
-                    case "EmailID": data.Email_ID = value; break;
-                    case "DateofBirth": data.Date_of_Birth = value; break;
-                    case "Gender": data.Gender = value; break;
-                    case "Street": data.Street = value; break;
-                    case "City": data.City = value; break;
-                    case "State": data.State = value; break;
-                    case "PinCode": data.PinCode = value; break;
-                    case "LandSize": data.Land_Size = value; break;
-                    case "AadharNumber": data.Aadhar_Number = value; break;
-                    case "PANNumber": data.PAN_Number = value; break;
-                }
-            });
-
-
-
-            console.log('Submitting data:', data); // Debug log
-
-            try {
-                const res = await fetch(`${apiBase}/farmers`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(result.error || 'Failed to add farmer');
-                }
-
-                showStatus(`✓ Farmer added successfully! ID: ${result.id}`, 'success');
-                farmerForm.reset();
-                fetchFarmers();
-
-            } catch (error) {
-                console.error('Error adding farmer:', error);
-                showStatus(`✗ Error: ${error.message}`, 'error');
-            }
-        });
-
-        // Delete farmer
-        async function deleteFarmer(id) {
-            if (!confirm('Are you sure you want to delete this farmer?')) return;
-
-            try {
-                const res = await fetch(`${apiBase}/farmers/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (!res.ok) throw new Error('Failed to delete farmer');
-
-                showStatus('✓ Farmer deleted successfully', 'success');
-                fetchFarmers();
-            } catch (error) {
-                console.error('Error deleting farmer:', error);
-                showStatus(`✗ Error: ${error.message}`, 'error');
-            }
-        }
-
-        // Make deleteFarmer global
-        window.deleteFarmer = deleteFarmer;
-
-        // Initialize
-        fetchFarmers();
-    </script>
+  <script src="farmer.js"></script>
 </body>
-
 </html>
