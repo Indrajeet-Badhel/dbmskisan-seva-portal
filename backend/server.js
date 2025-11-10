@@ -22,7 +22,7 @@ app.get('/farmers', (req, res) => {
 // GET farmers with advanced filters
 app.get('/farmers/filter', (req, res) => {
     const { name, minLandSize, maxLandSize, taxStatus, state, cropType, regStart, regEnd } = req.query;
-    
+
     let sql = `SELECT DISTINCT f.* FROM Farmer_Details f 
                LEFT JOIN Tax_Details t ON f.Farmer_ID = t.Farmer_ID
                LEFT JOIN Crop_Details c ON f.Farmer_ID = c.Farmer_ID
@@ -149,11 +149,11 @@ app.get('/farmers/:id/bank', (req, res) => {
 
 app.post('/farmers/:id/bank', (req, res) => {
     const { Bank_Name, Account_Type, Branch, IFSC, Account_Number } = req.body;
-    
+
     // First get farmer details
     db.query('SELECT First_Name, Last_Name FROM Farmer_Details WHERE Farmer_ID=?', [req.params.id], (err, farmer) => {
         if (err || farmer.length === 0) return res.status(404).json({ error: 'Farmer not found' });
-        
+
         const sql = 'INSERT INTO Bank_Details(Farmer_ID, First_Name, Last_Name, Bank_Name, Account_Type, Branch, IFSC, Account_Number) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
         db.query(sql, [req.params.id, farmer[0].First_Name, farmer[0].Last_Name, Bank_Name, Account_Type, Branch, IFSC, Account_Number], (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
@@ -261,8 +261,8 @@ app.get('/reports/unpaid-taxes', (req, res) => {
 
 // Tax summary (totals by status) for a farmer
 app.get('/api/farmer/:farmerId/tax-summary', (req, res) => {
-  const farmerId = req.params.farmerId;
-  const sql = `
+    const farmerId = req.params.farmerId;
+    const sql = `
     SELECT
       SUM(CASE WHEN Current_Status IN ('Unpaid', 'Overdue') THEN Tax_Amount + IFNULL(Penalty_Amount, 0) ELSE 0 END) AS totalDue,
       SUM(CASE WHEN Current_Status = 'Overdue' THEN Tax_Amount + IFNULL(Penalty_Amount, 0) ELSE 0 END) AS overdueAmount,
@@ -271,80 +271,80 @@ app.get('/api/farmer/:farmerId/tax-summary', (req, res) => {
     FROM tax_details
     WHERE Farmer_ID = ?
   `;
-  db.query(sql, [farmerId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    const row = results[0];
-    res.json({
-      totalDue: row.totalDue || 0,
-      overdueAmount: row.overdueAmount || 0,
-      paidAmount: row.paidAmount || 0,
-      exemptedAmount: row.exemptedAmount || 0
+    db.query(sql, [farmerId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const row = results[0];
+        res.json({
+            totalDue: row.totalDue || 0,
+            overdueAmount: row.overdueAmount || 0,
+            paidAmount: row.paidAmount || 0,
+            exemptedAmount: row.exemptedAmount || 0
+        });
     });
-  });
 });
 
 // Fetch tax details for farmer with optional filters
 app.get('/api/farmer/:farmerId/tax-details', (req, res) => {
-  const farmerId = req.params.farmerId;
-  let sql = `SELECT Tax_Type, Tax_Amount, Penalty_Amount, Current_Status, Due_Date, Payment_Date FROM tax_details WHERE Farmer_ID = ?`;
-  const params = [farmerId];
+    const farmerId = req.params.farmerId;
+    let sql = `SELECT Tax_Type, Tax_Amount, Penalty_Amount, Current_Status, Due_Date, Payment_Date FROM tax_details WHERE Farmer_ID = ?`;
+    const params = [farmerId];
 
-  if (req.query.tax_type) {
-    sql += " AND Tax_Type LIKE ?";
-    params.push(`%${req.query.tax_type}%`);
-  }
-  if (req.query.status) {
-    sql += " AND Current_Status = ?";
-    params.push(req.query.status);
-  }
-  if (req.query.due_date_start) {
-    sql += " AND Due_Date >= ?";
-    params.push(req.query.due_date_start);
-  }
-  if (req.query.due_date_end) {
-    sql += " AND Due_Date <= ?";
-    params.push(req.query.due_date_end);
-  }
-  sql += " ORDER BY Due_Date DESC";
+    if (req.query.tax_type) {
+        sql += " AND Tax_Type LIKE ?";
+        params.push(`%${req.query.tax_type}%`);
+    }
+    if (req.query.status) {
+        sql += " AND Current_Status = ?";
+        params.push(req.query.status);
+    }
+    if (req.query.due_date_start) {
+        sql += " AND Due_Date >= ?";
+        params.push(req.query.due_date_start);
+    }
+    if (req.query.due_date_end) {
+        sql += " AND Due_Date <= ?";
+        params.push(req.query.due_date_end);
+    }
+    sql += " ORDER BY Due_Date DESC";
 
-  db.query(sql, params, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
 });
 
 // Fetch tax-related notifications for farmer
 app.get('/api/farmer/:farmerId/notifications', (req, res) => {
-  const farmerId = req.params.farmerId;
-  const category = req.query.category || 'Tax';
-  const sql = `
+    const farmerId = req.params.farmerId;
+    const category = req.query.category || 'Tax';
+    const sql = `
     SELECT Title, Message, created_at 
     FROM notifications
     WHERE Farmer_ID = ? AND Category = ? 
     ORDER BY created_at DESC 
     LIMIT 10
   `;
-  db.query(sql, [farmerId, category], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+    db.query(sql, [farmerId, category], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
 });
 
 // Fetch paginated transactions for farmer (filtering can be added)
 app.get('/api/farmer/:farmerId/transactions', (req, res) => {
-  const farmerId = req.params.farmerId;
-  const page = parseInt(req.query.page) || 1;
-  const pageSize = parseInt(req.query.pageSize) || 10;
-  const offset = (page - 1) * pageSize;
+    const farmerId = req.params.farmerId;
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
 
-  // Join transaction_logs bank_details to confirm farmer ownership
-  const sqlCount = `
+    // Join transaction_logs bank_details to confirm farmer ownership
+    const sqlCount = `
     SELECT COUNT(*) AS totalCount 
     FROM transaction_logs tl
     JOIN bank_details bd ON tl.Bank_ID = bd.Bank_ID
     WHERE bd.Farmer_ID = ?
   `;
-  const sqlData = `
+    const sqlData = `
     SELECT tl.Transaction_Type, tl.Amount, tl.Description, tl.Status, tl.created_at
     FROM transaction_logs tl
     JOIN bank_details bd ON tl.Bank_ID = bd.Bank_ID
@@ -353,39 +353,39 @@ app.get('/api/farmer/:farmerId/transactions', (req, res) => {
     LIMIT ? OFFSET ?
   `;
 
-  db.query(sqlCount, [farmerId], (err, countResult) => {
-    if (err) return res.status(500).json({ error: err.message });
-    const totalCount = countResult[0].totalCount;
-    const totalPages = Math.ceil(totalCount / pageSize);
+    db.query(sqlCount, [farmerId], (err, countResult) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const totalCount = countResult[0].totalCount;
+        const totalPages = Math.ceil(totalCount / pageSize);
 
-    db.query(sqlData, [farmerId, pageSize, offset], (err2, dataResults) => {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json({ transactions: dataResults, totalPages });
+        db.query(sqlData, [farmerId, pageSize, offset], (err2, dataResults) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            res.json({ transactions: dataResults, totalPages });
+        });
     });
-  });
 });
 // GET all farmers
 app.get('/farmers', (req, res) => {
-  const sql = 'SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details';
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+    const sql = 'SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details';
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
 });
 
 // GET farmers with filter
 app.get('/farmers/filter', (req, res) => {
-  const { name } = req.query;
-  let sql = `SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details WHERE 1=1`;
-  const params = [];
-  if (name) {
-    sql += ` AND (First_Name LIKE ? OR Last_Name LIKE ? OR Email_ID LIKE ?)`;
-    params.push(`%${name}%`, `%${name}%`, `%${name}%`);
-  }
-  db.query(sql, params, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+    const { name } = req.query;
+    let sql = `SELECT Farmer_ID, First_Name, Last_Name, Email_ID FROM Farmer_Details WHERE 1=1`;
+    const params = [];
+    if (name) {
+        sql += ` AND (First_Name LIKE ? OR Last_Name LIKE ? OR Email_ID LIKE ?)`;
+        params.push(`%${name}%`, `%${name}%`, `%${name}%`);
+    }
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
 });
 app.get('/farmers/:id/tax-summary', (req, res) => {
     const farmerId = req.params.id;
@@ -398,7 +398,7 @@ app.get('/farmers/:id/tax-summary', (req, res) => {
         FROM tax_details
         WHERE Farmer_ID = ?
     `;
-    
+
     db.query(sql, [farmerId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         const row = results[0];
@@ -454,7 +454,7 @@ app.get('/farmers/:id/notifications', (req, res) => {
         ORDER BY Priority DESC, created_at DESC 
         LIMIT 20
     `;
-    
+
     db.query(sql, [farmerId, category], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
@@ -470,18 +470,18 @@ app.get('/farmers/:id/transactions', (req, res) => {
 
     // First get the bank_id for this farmer
     const bankSql = 'SELECT Bank_ID FROM bank_details WHERE Farmer_ID = ? AND Is_Primary = 1 LIMIT 1';
-    
+
     db.query(bankSql, [farmerId], (err, bankResults) => {
         if (err) return res.status(500).json({ error: err.message });
         if (bankResults.length === 0) {
             return res.json({ transactions: [], totalPages: 0, message: 'No bank account found' });
         }
-        
+
         const bankId = bankResults[0].Bank_ID;
-        
+
         // Count total transactions
         const countSql = 'SELECT COUNT(*) AS totalCount FROM transaction_logs WHERE Bank_ID = ?';
-        
+
         db.query(countSql, [bankId], (err, countResult) => {
             if (err) return res.status(500).json({ error: err.message });
             const totalCount = countResult[0].totalCount;
@@ -495,11 +495,11 @@ app.get('/farmers/:id/transactions', (req, res) => {
                 ORDER BY created_at DESC
                 LIMIT ? OFFSET ?
             `;
-            
+
             db.query(dataSql, [bankId, pageSize, offset], (err, dataResults) => {
                 if (err) return res.status(500).json({ error: err.message });
-                res.json({ 
-                    transactions: dataResults, 
+                res.json({
+                    transactions: dataResults,
                     totalPages,
                     currentPage: page,
                     totalCount
@@ -513,7 +513,7 @@ app.get('/farmers/:id/transactions', (req, res) => {
 app.put('/notifications/:id/read', (req, res) => {
     const notificationId = req.params.id;
     const sql = 'UPDATE notifications SET Is_Read = 1, read_at = NOW() WHERE Notification_ID = ?';
-    
+
     db.query(sql, [notificationId], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Notification marked as read' });
@@ -523,7 +523,7 @@ app.put('/notifications/:id/read', (req, res) => {
 // Get tax statistics for analytics/charts
 app.get('/farmers/:id/tax-analytics', (req, res) => {
     const farmerId = req.params.id;
-    
+
     // Get status distribution
     const statusSql = `
         SELECT 
@@ -534,7 +534,7 @@ app.get('/farmers/:id/tax-analytics', (req, res) => {
         WHERE Farmer_ID = ?
         GROUP BY Current_Status
     `;
-    
+
     // Get monthly trend (last 12 months)
     const trendSql = `
         SELECT 
@@ -547,13 +547,13 @@ app.get('/farmers/:id/tax-analytics', (req, res) => {
         GROUP BY DATE_FORMAT(Due_Date, '%Y-%m')
         ORDER BY month
     `;
-    
+
     db.query(statusSql, [farmerId], (err, statusResults) => {
         if (err) return res.status(500).json({ error: err.message });
-        
+
         db.query(trendSql, [farmerId], (err, trendResults) => {
             if (err) return res.status(500).json({ error: err.message });
-            
+
             res.json({
                 statusDistribution: statusResults,
                 monthlyTrend: trendResults
@@ -566,7 +566,7 @@ app.get('/farmers/:id/tax-analytics', (req, res) => {
 app.post('/farmers/:farmerId/tax/:taxId/pay', (req, res) => {
     const { farmerId, taxId } = req.params;
     const { paymentMethod, transactionRef } = req.body;
-    
+
     const sql = `
         UPDATE tax_details 
         SET Current_Status = 'Paid', 
@@ -574,25 +574,25 @@ app.post('/farmers/:farmerId/tax/:taxId/pay', (req, res) => {
             updated_at = NOW()
         WHERE Tax_ID = ? AND Farmer_ID = ?
     `;
-    
+
     db.query(sql, [taxId, farmerId], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Tax record not found' });
         }
-        
+
         // Create notification
         const notifSql = `
             INSERT INTO notifications (Farmer_ID, Title, Message, Type, Category, Priority)
             VALUES (?, 'Payment Successful', 'Your tax payment has been processed successfully.', 'Success', 'Tax', 'Medium')
         `;
-        
+
         db.query(notifSql, [farmerId], (err) => {
             if (err) console.error('Failed to create notification:', err);
         });
-        
-        res.json({ 
+
+        res.json({
             message: 'Tax payment processed successfully',
             taxId,
             status: 'Paid'
@@ -601,9 +601,347 @@ app.post('/farmers/:farmerId/tax/:taxId/pay', (req, res) => {
 });
 
 console.log('Tax Dashboard API endpoints added successfully!');
+// ==========================================
+// GOVERNMENT POLICY DASHBOARD ROUTES
+// ==========================================
+
+// Get policy summary for a farmer
+app.get('/farmers/:id/policy-summary', (req, res) => {
+    const farmerId = req.params.id;
+
+    const sql = `
+        SELECT 
+            COUNT(*) as totalApplications,
+            SUM(CASE WHEN Status = 'Approved' THEN 1 ELSE 0 END) as approvedCount,
+            SUM(CASE WHEN Status = 'Pending' THEN 1 ELSE 0 END) as pendingCount,
+            SUM(CASE WHEN Status = 'Rejected' THEN 1 ELSE 0 END) as rejectedCount,
+            SUM(CASE WHEN Status = 'Approved' AND Disbursement_Status = 'Full' THEN Amount_Granted ELSE 0 END) as totalAmountReceived,
+            MIN(DATEDIFF(Expiry_Date, CURDATE())) as nearestExpiryDays
+        FROM gov_policies
+        WHERE Farmer_ID = ? AND Expiry_Date >= CURDATE()
+    `;
+
+    db.query(sql, [farmerId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        const summary = results[0];
+        res.json({
+            totalApplications: summary.totalApplications || 0,
+            approvedCount: summary.approvedCount || 0,
+            pendingCount: summary.pendingCount || 0,
+            rejectedCount: summary.rejectedCount || 0,
+            totalAmountReceived: parseFloat(summary.totalAmountReceived) || 0,
+            nearestExpiryDays: summary.nearestExpiryDays || 'N/A'
+        });
+    });
+});
+
+// Get eligible policies for a farmer
+app.get('/farmers/:id/eligible-policies', (req, res) => {
+    const farmerId = req.params.id;
+
+    // First get farmer details
+    const farmerSql = 'SELECT Land_Size, State, Gender FROM farmer_details WHERE Farmer_ID = ?';
+
+    db.query(farmerSql, [farmerId], (err, farmerResults) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (farmerResults.length === 0) return res.status(404).json({ error: 'Farmer not found' });
+
+        const farmer = farmerResults[0];
+
+        // Get policies that match farmer's eligibility and haven't been applied for
+        const policySql = `
+            SELECT pm.* 
+            FROM policy_master pm
+            WHERE pm.Status = 'Active'
+            AND (pm.Application_End IS NULL OR pm.Application_End >= CURDATE())
+            AND (pm.Min_Land_Size IS NULL OR pm.Min_Land_Size <= ?)
+            AND (pm.Max_Land_Size IS NULL OR pm.Max_Land_Size >= ?)
+            AND (pm.State IS NULL OR pm.State = ? OR pm.State = 'All')
+            AND (pm.Gender = 'Any' OR pm.Gender = ?)
+            AND pm.Policy_ID NOT IN (
+                SELECT gp.Policy_ID 
+                FROM gov_policies gp 
+                JOIN policy_master pm2 ON gp.Scheme_Name = pm2.Policy_Name
+                WHERE gp.Farmer_ID = ?
+            )
+        `;
+
+        db.query(policySql, [
+            farmer.Land_Size,
+            farmer.Land_Size,
+            farmer.State,
+            farmer.Gender,
+            farmerId
+        ], (err, policies) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json(policies);
+        });
+    });
+});
+
+// Get applied policies for a farmer with calculated days left
+app.get('/farmers/:id/policies', (req, res) => {
+    const farmerId = req.params.id;
+
+    const sql = `
+        SELECT 
+            *,
+            DATEDIFF(Expiry_Date, CURDATE()) as DaysLeft
+        FROM gov_policies
+        WHERE Farmer_ID = ?
+        ORDER BY Application_Date DESC
+    `;
+
+    db.query(sql, [farmerId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// Get disbursements for a farmer (transactions with type Policy_Disbursement)
+app.get('/farmers/:id/disbursements', (req, res) => {
+    const farmerId = req.params.id;
+
+    const sql = `
+        SELECT 
+            tl.Transaction_ID,
+            tl.Amount,
+            tl.Description,
+            tl.Reference_Number,
+            tl.created_at,
+            bd.Account_Number,
+            bd.Bank_Name
+        FROM transaction_logs tl
+        JOIN bank_details bd ON tl.Bank_ID = bd.Bank_ID
+        WHERE bd.Farmer_ID = ? 
+        AND tl.Transaction_Type = 'Policy_Disbursement'
+        AND tl.Status = 'Success'
+        ORDER BY tl.created_at DESC
+    `;
+
+    db.query(sql, [farmerId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// Get policy-related notifications for a farmer
+app.get('/farmers/:id/policy-notifications', (req, res) => {
+    const farmerId = req.params.id;
+
+    const sql = `
+        SELECT 
+            Notification_ID,
+            Title,
+            Message,
+            Type,
+            Priority,
+            created_at
+        FROM notifications
+        WHERE Farmer_ID = ? 
+        AND Category = 'Policy'
+        ORDER BY Priority DESC, created_at DESC
+        LIMIT 20
+    `;
+
+    db.query(sql, [farmerId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// Apply for a policy
+app.post('/farmers/:id/apply-policy', (req, res) => {
+    const farmerId = req.params.id;
+    const { policyId } = req.body;
+
+    // First get policy details
+    const policySql = 'SELECT * FROM policy_master WHERE Policy_ID = ?';
+
+    db.query(policySql, [policyId], (err, policyResults) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (policyResults.length === 0) return res.status(404).json({ error: 'Policy not found' });
+
+        const policy = policyResults[0];
+
+        // Get farmer details
+        const farmerSql = 'SELECT Aadhar_Number, PAN_Number FROM farmer_details WHERE Farmer_ID = ?';
+
+        db.query(farmerSql, [farmerId], (err, farmerResults) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (farmerResults.length === 0) return res.status(404).json({ error: 'Farmer not found' });
+
+            const farmer = farmerResults[0];
+
+            // Check if already applied
+            const checkSql = 'SELECT * FROM gov_policies WHERE Farmer_ID = ? AND Scheme_Name = ?';
+
+            db.query(checkSql, [farmerId, policy.Policy_Name], (err, existing) => {
+                if (err) return res.status(500).json({ error: err.message });
+                if (existing.length > 0) {
+                    return res.status(400).json({ error: 'Already applied for this policy' });
+                }
+
+                // Insert application
+                const insertSql = `
+  INSERT INTO gov_policies 
+  (Farmer_ID, Policy_ID, Amount_Granted, Eligibility, Aadhar_Number, PAN_Number, Status, Disbursement_Status)
+  VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Not Disbursed')
+`;
+                db.query(insertSql, [
+                    farmerId,
+                    policy.Policy_ID,
+                    policy.Max_Grant,
+                    policy.Eligibility_Criteria,
+                    farmer.Aadhar_Number,
+                    farmer.PAN_Number
+                ], (err, result) => {
+                    if (err) return res.status(500).json({ error: err.message });
+
+                    // Create notification
+                    const notifSql = `
+                        INSERT INTO notifications 
+                        (Farmer_ID, Title, Message, Type, Category, Priority)
+                        VALUES (?, ?, ?, 'Info', 'Policy', 'Medium')
+                    `;
+
+                    const notifTitle = 'Policy Application Submitted';
+                    const notifMessage = `Your application for ${policy.Policy_Name} has been submitted successfully and is under review.`;
+
+                    db.query(notifSql, [farmerId, notifTitle, notifMessage], (err) => {
+                        if (err) console.error('Failed to create notification:', err);
+                    });
+
+                    res.json({
+                        message: 'Application submitted successfully',
+                        applicationId: result.insertId
+                    });
+                });
+            });
+        });
+    });
+});
+
+// Get all active policies from policy_master
+app.get('/policies/active', (req, res) => {
+    const sql = `
+        SELECT * FROM policy_master 
+        WHERE Status = 'Active'
+        AND (Application_End IS NULL OR Application_End >= CURDATE())
+        ORDER BY Policy_Name
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// Update policy status (for admin use)
+app.put('/policies/:govId/status', (req, res) => {
+    const govId = req.params.govId;
+    const { status, approvalDate, expiryDate, disbursementStatus } = req.body;
+
+    let sql = 'UPDATE gov_policies SET Status = ?';
+    const params = [status];
+
+    if (approvalDate) {
+        sql += ', Approval_Date = ?';
+        params.push(approvalDate);
+    }
+
+    if (expiryDate) {
+        sql += ', Expiry_Date = ?';
+        params.push(expiryDate);
+    }
+
+    if (disbursementStatus) {
+        sql += ', Disbursement_Status = ?';
+        params.push(disbursementStatus);
+    }
+
+    sql += ' WHERE Gov_ID = ?';
+    params.push(govId);
+
+    db.query(sql, params, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Policy application not found' });
+        }
+
+        res.json({ message: 'Policy status updated successfully' });
+    });
+});
+
+// Auto-expire policies (can be called by cron job or manually)
+app.post('/policies/auto-expire', (req, res) => {
+    const sql = `
+        UPDATE gov_policies 
+        SET Status = 'Expired'
+        WHERE Status != 'Expired' 
+        AND Expiry_Date < CURDATE()
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({
+            message: 'Auto-expiry completed',
+            expiredCount: result.affectedRows
+        });
+    });
+});
+
+// Get policy statistics
+app.get('/policies/statistics', (req, res) => {
+    const sql = `
+        SELECT 
+            COUNT(*) as totalApplications,
+            SUM(CASE WHEN Status = 'Approved' THEN 1 ELSE 0 END) as approved,
+            SUM(CASE WHEN Status = 'Pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN Status = 'Rejected' THEN 1 ELSE 0 END) as rejected,
+            SUM(CASE WHEN Status = 'Expired' THEN 1 ELSE 0 END) as expired,
+            SUM(CASE WHEN Status = 'Approved' THEN Amount_Granted ELSE 0 END) as totalAmountGranted,
+            SUM(CASE WHEN Disbursement_Status = 'Full' THEN Amount_Granted ELSE 0 END) as totalDisbursed
+        FROM gov_policies
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results[0]);
+    });
+});
+// Alias route for compatibility with frontend
+app.get('/farmers/:id/notifications', (req, res) => {
+  const farmerId = req.params.id;
+  const category = req.query.category || 'Policy';
+
+  const sql = `
+    SELECT 
+      Notification_ID,
+      Title,
+      Message,
+      Type,
+      Priority,
+      created_at
+    FROM notifications
+    WHERE Farmer_ID = ? AND Category = ?
+    ORDER BY Priority DESC, created_at DESC
+    LIMIT 20
+  `;
+
+  db.query(sql, [farmerId, category], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+
+console.log('Government Policy Dashboard API endpoints added successfully!');
 
 app.get("/", (req, res) => {
-    res.json({ 
+    res.json({
         message: "Welcome to the Farmer Bank API",
         endpoints: {
             farmers: "/farmers",

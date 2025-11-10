@@ -117,7 +117,7 @@ document.getElementById('resetFilters').addEventListener('click', function() {
 function selectFarmer(id, name) {
     currentFarmerId = id;
     currentFarmerName = name;
-    selectedFarmerInfo.innerHTML = `✅ Selected: <strong>${name}</strong> (ID: ${id})`;
+    selectedFarmerInfo.innerHTML = ` Selected: <strong>${name}</strong> (ID: ${id})`;
     selectedFarmerInfo.style.color = '#28a745';
     
     // Scroll to manage section
