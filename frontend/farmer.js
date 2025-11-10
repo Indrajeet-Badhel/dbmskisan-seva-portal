@@ -43,12 +43,12 @@ async function fetchFarmers() {
 
 function displayFarmers(farmers) {
     farmersTableBody.innerHTML = '';
-    
+
     if (farmers.length === 0) {
         farmersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No farmers found</td></tr>';
         return;
     }
-    
+
     farmers.forEach(f => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -58,6 +58,8 @@ function displayFarmers(farmers) {
             <td>${f.City}</td>
             <td>${f.State}</td>
             <td>${f.Land_Size} acres</td>
+            <td>${f.AadharNumber || ''}</td>
+            <td>${f.PANNumber || ''}</td>
             <td>
                 <button onclick="selectFarmer(${f.Farmer_ID}, '${f.First_Name} ${f.Last_Name}')">Select</button>
                 <button onclick="editFarmer(${f.Farmer_ID})">Edit</button>
@@ -73,9 +75,9 @@ function displayFarmers(farmers) {
 // FILTER FARMERS
 // ==========================================
 
-document.getElementById('filter-form').addEventListener('submit', async function(e) {
+document.getElementById('filter-form').addEventListener('submit', async function (e) {
     e.preventDefault();
-    
+
     const params = {
         name: document.getElementById('searchName').value.trim(),
         minLandSize: document.getElementById('minLandSize').value,
@@ -86,13 +88,13 @@ document.getElementById('filter-form').addEventListener('submit', async function
         regStart: document.getElementById('regStart').value,
         regEnd: document.getElementById('regEnd').value
     };
-    
+
     // Build query string
     const queryString = Object.entries(params)
         .filter(([_, v]) => v)
-        .map(([k,v]) => `${k}=${encodeURIComponent(v)}`)
+        .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
         .join('&');
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/filter?${queryString}`);
         const farmers = await res.json();
@@ -105,7 +107,7 @@ document.getElementById('filter-form').addEventListener('submit', async function
 });
 
 // Reset filters
-document.getElementById('resetFilters').addEventListener('click', function() {
+document.getElementById('resetFilters').addEventListener('click', function () {
     document.getElementById('filter-form').reset();
     fetchFarmers();
 });
@@ -119,7 +121,7 @@ function selectFarmer(id, name) {
     currentFarmerName = name;
     selectedFarmerInfo.innerHTML = ` Selected: <strong>${name}</strong> (ID: ${id})`;
     selectedFarmerInfo.style.color = '#28a745';
-    
+
     // Scroll to manage section
     document.getElementById('farmer-actions').scrollIntoView({ behavior: 'smooth' });
 }
@@ -130,19 +132,22 @@ function selectFarmer(id, name) {
 
 farmerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const data = {
-        First_Name: document.getElementById('First_Name').value,
-        Last_Name: document.getElementById('Last_Name').value,
-        Email_ID: document.getElementById('Email_ID').value,
-        Date_of_Birth: document.getElementById('Date_of_Birth').value,
+        First_Name: document.getElementById('FirstName').value,
+        Last_Name: document.getElementById('LastName').value,
+        Email_ID: document.getElementById('EmailID').value,
+        Date_of_Birth: document.getElementById('DateofBirth').value,
         Gender: document.getElementById('Gender').value,
         Street: document.getElementById('Street').value,
         City: document.getElementById('City').value,
         State: document.getElementById('State').value,
         PinCode: document.getElementById('PinCode').value,
-        Land_Size: document.getElementById('Land_Size').value
+        Land_Size: document.getElementById('LandSize').value,
+        Aadhar_Number: document.getElementById('AadharNumber').value,
+        PAN_Number: document.getElementById('PANNumber').value
     };
+
 
     try {
         if (isEditing && currentFarmerId) {
@@ -182,7 +187,7 @@ async function editFarmer(id) {
     try {
         const res = await fetch(`${apiBase}/farmers/${id}`);
         const farmer = await res.json();
-        
+
         if (!farmer || !farmer.Farmer_ID) {
             alert("Farmer not found");
             return;
@@ -198,11 +203,13 @@ async function editFarmer(id) {
         document.getElementById('State').value = farmer.State;
         document.getElementById('PinCode').value = farmer.PinCode;
         document.getElementById('Land_Size').value = farmer.Land_Size;
+        document.getElementById('AadharNumber').value = farmer.AadharNumber || '';
+        document.getElementById('PANNumber').value = farmer.PANNumber || '';
 
         currentFarmerId = id;
         isEditing = true;
         farmerForm.querySelector('button').textContent = "Update Farmer";
-        
+
         // Scroll to form
         document.getElementById('add-farmer').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
@@ -219,7 +226,7 @@ async function deleteFarmer(id) {
     if (!confirm('Are you sure you want to delete this farmer? This will also delete all related data.')) {
         return;
     }
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${id}`, { method: 'DELETE' });
         const data = await res.json();
@@ -249,11 +256,11 @@ async function deleteFarmer(id) {
 async function viewPhones(id, name) {
     currentFarmerId = id;
     farmerNameSpan.textContent = name;
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${id}/phones`);
         const phones = await res.json();
-        
+
         phoneList.innerHTML = '';
         if (phones.length === 0) {
             phoneList.innerHTML = '<li>No phone numbers added</li>';
@@ -264,7 +271,7 @@ async function viewPhones(id, name) {
                 phoneList.appendChild(li);
             });
         }
-        
+
         phoneModal.style.display = 'block';
     } catch (error) {
         console.error('Error fetching phones:', error);
@@ -278,14 +285,14 @@ addPhoneBtn.addEventListener('click', async () => {
         alert('Enter a phone number');
         return;
     }
-    
+
     try {
         await fetch(`${apiBase}/farmers/${currentFarmerId}/phones`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Phone_Number: phone })
         });
-        
+
         newPhoneInput.value = '';
         viewPhones(currentFarmerId, farmerNameSpan.textContent);
     } catch (error) {
@@ -328,27 +335,27 @@ function checkFarmerSelected() {
 
 async function viewBank() {
     if (!checkFarmerSelected()) return;
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/bank`);
         let accounts = res.ok ? await res.json() : [];
-        
+
         // Handle case where backend returns single object instead of array
         if (accounts && !Array.isArray(accounts)) {
             accounts = [accounts];
         }
-        
+
         // Handle null or undefined
         if (!accounts) {
             accounts = [];
         }
 
         clearDetails();
-        
+
         // Calculate total balance
         const totalBalance = accounts.reduce((sum, acc) => sum + parseFloat(acc.Account_Balance || 0), 0);
         const primaryAccount = accounts.find(acc => acc.Is_Primary);
-        
+
         detailsContainer.innerHTML = `
             <h3>🏦 Bank Details for ${currentFarmerName}</h3>
             
@@ -420,7 +427,7 @@ async function viewBank() {
 
 async function viewCrops() {
     if (!checkFarmerSelected()) return;
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/crops`);
         const crops = await res.json();
@@ -493,7 +500,7 @@ async function viewCrops() {
 
 async function viewPolicies() {
     if (!checkFarmerSelected()) return;
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/policies`);
         const policies = await res.json();
@@ -562,7 +569,7 @@ async function viewPolicies() {
 
 async function viewTax() {
     if (!checkFarmerSelected()) return;
-    
+
     try {
         const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/tax`);
         const taxes = await res.json();
@@ -596,13 +603,13 @@ async function viewTax() {
 
         document.getElementById('tax-form').onsubmit = async (e) => {
             e.preventDefault();
-            
+
             try {
                 const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/tax`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        Current_Status: document.getElementById('Current_Status').value 
+                    body: JSON.stringify({
+                        Current_Status: document.getElementById('Current_Status').value
                     })
                 });
 

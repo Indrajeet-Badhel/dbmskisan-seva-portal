@@ -74,9 +74,9 @@ app.get('/farmers/filter', (req, res) => {
 
 // POST a new farmer
 app.post('/farmers', (req, res) => {
-    const { First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size } = req.body;
-    const sql = 'INSERT INTO Farmer_Details (First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size], (err, result) => {
+    const { First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size,Aadhar_Number,PAN_Number } = req.body;
+    const sql = 'INSERT INTO Farmer_Details (First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size, Aadhar_Number, PAN_Number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size, Aadhar_Number, PAN_Number], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Farmer added!', id: result.insertId });
     });
@@ -93,9 +93,9 @@ app.get('/farmers/:id', (req, res) => {
 
 // Update farmer details
 app.put('/farmers/:id', (req, res) => {
-    const { First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size } = req.body;
-    const sql = `UPDATE Farmer_Details SET First_Name=?, Last_Name=?, Email_ID=?, Date_of_Birth=?, Gender=?, Street=?, City=?, State=?, PinCode=?, Land_Size=? WHERE Farmer_ID=?`;
-    db.query(sql, [First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size, req.params.id], (err, result) => {
+    const { First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size,Aadhar_Number,PAN_Number } = req.body;
+    const sql = `UPDATE Farmer_Details SET First_Name=?, Last_Name=?, Email_ID=?, Date_of_Birth=?, Gender=?, Street=?, City=?, State=?, PinCode=?, Land_Size=?, Aadhar_Number=?, PAN_Number=? WHERE Farmer_ID=?`;
+    db.query(sql, [First_Name, Last_Name, Email_ID, Date_of_Birth, Gender, Street, City, State, PinCode, Land_Size, Aadhar_Number, PAN_Number, req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Farmer updated!' });
     });
