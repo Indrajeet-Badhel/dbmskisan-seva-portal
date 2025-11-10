@@ -62,7 +62,7 @@ function displayFarmers(farmers) {
                 <button onclick="selectFarmer(${f.Farmer_ID}, '${f.First_Name} ${f.Last_Name}')">Select</button>
                 <button onclick="editFarmer(${f.Farmer_ID})">Edit</button>
                 <button onclick="deleteFarmer(${f.Farmer_ID})">Delete</button>
-                <button onclick="viewPhones(${f.Farmer_ID}, '${f.First_Name} ${f.Last_Name}')">📞</button>
+                <button onclick="viewPhones(${f.Farmer_ID}, '${f.First_Name} ${f.Last_Name}')">Call</button>
             </td>
         `;
         farmersTableBody.appendChild(tr);
@@ -569,7 +569,7 @@ async function viewTax() {
 
         clearDetails();
         detailsContainer.innerHTML = `
-            <h3>💰 Tax Details for ${currentFarmerName}</h3>
+            <h3> Tax Details for ${currentFarmerName}</h3>
             ${taxes.length > 0 ? `
                 <ul style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     ${taxes.map(t => `

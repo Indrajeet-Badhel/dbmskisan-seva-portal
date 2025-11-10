@@ -3,178 +3,403 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Farmer Bank — Crop Management</title>
+  <title>Crop Management - Kisan Seva Portal</title>
   <link rel="stylesheet" href="farmer.css">
   <style>
-    #main-content { padding: 24px; max-width: 1200px; margin: 0 auto; }
-    h1.page-title { color: #214d2b; margin: 12px 0 20px; text-align: center; }
-    .grid { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
-    .card { background:#fff; padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.04); width:100%; }
-    .left { flex:1 1 640px; }
-    .right { flex: 0 0 360px; }
-    label { display:block; margin:8px 0; font-size:14px; color:#333; }
-    input, select, button { width:100%; box-sizing:border-box; padding:8px 10px; border-radius:6px; border:1px solid #e0e0e0; margin-top:6px; }
-    .row { display:flex; gap:10px; }
-    .row > * { flex:1 }
-    table { width:100%; border-collapse:collapse; background:#fff; margin-top:12px; border-radius:8px; overflow:hidden; }
-    th, td { padding:10px 12px; border-bottom:1px solid #f0f0f0; text-align:left; font-size:14px; }
-    th { background: linear-gradient(90deg,#2d6a2d,#1f4a1f); color:#fff; font-weight:600; }
-    .actions button { margin-right:6px; padding:6px 8px; border-radius:6px; cursor:pointer; }
-    .btn-delete { background:#e14d4d; color:#fff; }
-    .btn-edit { background:#2d6aef; color:#fff; }
-    .small { font-size:13px; color:#666; }
+    #main-content {
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1.page-title {
+      color: #1e4620;
+      margin: 0 0 24px;
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    .left {
+      flex: 1 1 700px;
+    }
+
+    .right {
+      flex: 0 0 320px;
+    }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c3e50;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: #4a4a4a;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 3px;
+      border: 1px solid #d1d1d1;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2d6a2d;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    button {
+      padding: 9px 16px;
+      border: none;
+      border-radius: 3px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    button[type="submit"] {
+      background: #2d6a2d;
+      color: #fff;
+    }
+
+    button[type="submit"]:hover {
+      background: #25582a;
+    }
+
+    button[type="button"] {
+      background: #6c757d;
+      color: #fff;
+    }
+
+    button[type="button"]:hover {
+      background: #5a6268;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .form-actions button {
+      flex: 1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 16px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e8e8e8;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: #f8f9fa;
+      color: #2c3e50;
+      font-weight: 600;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .actions button {
+      margin: 0;
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: #fff;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .btn-edit {
+      background: #007bff;
+      color: #fff;
+    }
+
+    .btn-edit:hover {
+      background: #0056b3;
+    }
+
+    #results-info {
+      font-size: 13px;
+      color: #6c757d;
+      margin-bottom: 12px;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .filter-actions button {
+      flex: 1;
+      padding: 8px 12px;
+    }
+
+    #apply-filters {
+      background: #2d6a2d;
+      color: #fff;
+    }
+
+    #apply-filters:hover {
+      background: #25582a;
+    }
+
+    #reset-filters {
+      background: #6c757d;
+      color: #fff;
+    }
+
+    #reset-filters:hover {
+      background: #5a6268;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        flex-direction: column;
+      }
+
+      .right {
+        flex: 1 1 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #main-content {
+        padding: 16px;
+      }
+
+      .row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px 6px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 
 <body>
   <nav class="navbar">
-        <div class="navbar-brand">🌾 Kisan Seva Portal</div>
-        <ul class="navbar-links">
-            <li><a href="farmer.html">Farmer</a></li>
-            <li><a href="crop.html">Crop</a></li>
-            <li><a href="bank.html">Bank</a></li>
-            <li><a href="farmertaxdashboard.html">Tax Details</a></li>
-            <li><a href="policies.html">Government Schemes</a></li>
-            
-        </ul>
-    </nav>
+    <div class="navbar-brand">🌾 Kisan Seva Portal</div>
+    <ul class="navbar-links">
+      <li><a href="farmer.html">Farmer Portal</a></li>
+      <li><a href="crop.html">Crop Portal</a></li>
+      <li><a href="bank.html">Bank Portal</a></li>
+      <li><a href="farmertaxdashboard.html">Tax Portal</a></li>
+      <li><a href="policies.html">Schemes Portal</a></li>
+    </ul>
+  </nav>
 
   <div id="main-content">
     <h1 class="page-title">Crop Management</h1>
 
     <div class="grid">
-      <div class="left card">
-        <h3>Add / Edit Crop</h3>
+      <div class="left">
+        <div class="card">
+          <h3>Add / Edit Crop</h3>
 
-        <form id="crop-form">
-          <input type="hidden" id="editing-id">
+          <form id="crop-form">
+            <input type="hidden" id="editing-id">
 
-          <label>Crop Name
+            <label>Crop Name</label>
             <input type="text" id="Crop_Name" required>
-          </label>
 
-          <label>Farmer
+            <label>Farmer</label>
             <select id="Farmer_ID" required>
               <option value="">Loading farmers...</option>
             </select>
-          </label>
 
-          <div class="row">
-            <label>Type
-              <select id="Type">
-                <option value="">Select</option>
-                <option>Rabi</option>
-                <option>Kharif</option>
-                <option>Zaid</option>
-              </select>
-            </label>
+            <div class="row">
+              <div>
+                <label>Type</label>
+                <select id="Type">
+                  <option value="">Select</option>
+                  <option>Rabi</option>
+                  <option>Kharif</option>
+                  <option>Zaid</option>
+                </select>
+              </div>
 
-            <label>Season Year
-              <input type="number" id="Season_Year" placeholder="2025">
-            </label>
-          </div>
+              <div>
+                <label>Season Year</label>
+                <input type="number" id="Season_Year" placeholder="2025">
+              </div>
+            </div>
 
-          <div class="row">
-            <label>Harvest Start
-              <input type="date" id="Harvest_Start">
-            </label>
+            <div class="row">
+              <div>
+                <label>Harvest Start</label>
+                <input type="date" id="Harvest_Start">
+              </div>
 
-            <label>Harvest End
-              <input type="date" id="Harvest_End">
-            </label>
-          </div>
+              <div>
+                <label>Harvest End</label>
+                <input type="date" id="Harvest_End">
+              </div>
+            </div>
 
-          <div class="row">
-            <label>Area Planted (acres)
-              <input type="number" id="Area_Planted" step="0.01">
-            </label>
+            <div class="row">
+              <div>
+                <label>Area Planted (acres)</label>
+                <input type="number" id="Area_Planted" step="0.01">
+              </div>
 
-            <label>Expected Yield (kg)
-              <input type="number" id="Expected_Yield" step="0.01">
-            </label>
-          </div>
+              <div>
+                <label>Expected Yield (kg)</label>
+                <input type="number" id="Expected_Yield" step="0.01">
+              </div>
+            </div>
 
-          <div class="row">
-            <label>Price per unit
-              <input type="number" id="Price_Per_Unit" step="0.01">
-            </label>
+            <div class="row">
+              <div>
+                <label>Price per unit</label>
+                <input type="number" id="Price_Per_Unit" step="0.01">
+              </div>
 
-            <label>Quantity Available
-              <input type="number" id="Quantity_Available">
-            </label>
-          </div>
+              <div>
+                <label>Quantity Available</label>
+                <input type="number" id="Quantity_Available">
+              </div>
+            </div>
 
-          <label>Fertilizers Used
+            <label>Fertilizers Used</label>
             <input type="text" id="Fertilizers_Used">
-          </label>
 
-          <div class="row">
-            <button type="submit">Save Crop</button>
-            <button type="button" id="clear-form">Clear</button>
-          </div>
-        </form>
+            <div class="form-actions">
+              <button type="submit">Save Crop</button>
+              <button type="button" id="clear-form">Clear</button>
+            </div>
+          </form>
+        </div>
 
-        <h3>All Crops</h3>
-        <p id="results-info" class="small">Loading...</p>
+        <div class="card" style="margin-top: 20px;">
+          <h3>All Crops</h3>
+          <p id="results-info">Loading...</p>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Crop</th>
-              <th>Farmer</th>
-              <th>Type</th>
-              <th>Season</th>
-              <th>Harvest</th>
-              <th>Price</th>
-              <th>Qty</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="crop-table-body"></tbody>
-        </table>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Crop</th>
+                <th>Farmer</th>
+                <th>Type</th>
+                <th>Season</th>
+                <th>Harvest</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="crop-table-body"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="right card">
-        <h3>Filters</h3>
+      <div class="right">
+        <div class="card">
+          <h3>Filters</h3>
 
-        <form id="filter-form">
-          <label>Crop Name
+          <form id="filter-form">
+            <label>Crop Name</label>
             <input type="text" id="filter-name">
-          </label>
 
-          <label>Type
+            <label>Type</label>
             <select id="filter-type">
               <option value="">All</option>
               <option>Rabi</option>
               <option>Kharif</option>
               <option>Zaid</option>
             </select>
-          </label>
 
-          <label>Season Year
+            <label>Season Year</label>
             <input type="number" id="filter-season">
-          </label>
 
-          <label>Price Range
+            <label>Price Range</label>
             <div class="row">
               <input type="number" id="filter-min-price" placeholder="Min">
               <input type="number" id="filter-max-price" placeholder="Max">
             </div>
-          </label>
 
-          <label>Quantity Range
+            <label>Quantity Range</label>
             <div class="row">
               <input type="number" id="filter-min-qty" placeholder="Min">
               <input type="number" id="filter-max-qty" placeholder="Max">
             </div>
-          </label>
 
-          <div class="row">
-            <button type="button" id="apply-filters">Apply</button>
-            <button type="button" id="reset-filters">Reset</button>
-          </div>
-        </form>
+            <div class="filter-actions">
+              <button type="button" id="apply-filters">Apply</button>
+              <button type="button" id="reset-filters">Reset</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

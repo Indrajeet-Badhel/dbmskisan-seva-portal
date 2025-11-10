@@ -22,7 +22,7 @@
     <div id="main-content">
         <!-- Setup Section -->
         <section id="setup-section" style="background: #fff3cd; border-left: 4px solid #ffc107;">
-            <h2>⚙️ Database Setup</h2>
+            <h2>Database Setup</h2>
             <p style="margin-bottom: 15px;">Click below to create database objects (views, triggers, procedures). Run this once after database creation.</p>
             <button id="setup-db-btn" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">Initialize Database Objects</button>
             <div id="setup-status" style="margin-top: 10px; font-weight: 600;"></div>
@@ -30,7 +30,7 @@
 
         <!-- Farmer Selection Section -->
         <section id="farmer-selection">
-            <h2>👨‍🌾 Select Farmer</h2>
+            <h2>Select Farmer</h2>
             <form id="farmer-select-form">
                 <select id="farmer-dropdown" required>
                     <option value="">-- Select a Farmer --</option>
@@ -44,7 +44,7 @@
 
         <!-- Bank Accounts Overview -->
         <section id="accounts-overview">
-            <h2>💳 Bank Accounts</h2>
+            <h2> Bank Accounts</h2>
             <div id="accounts-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
                 <div class="summary-card">
                     <h4>Total Accounts</h4>
@@ -82,7 +82,7 @@
             </div>
 
             <div style="margin-top: 20px;">
-                <button onclick="showAddAccountForm()">➕ Add New Bank Account</button>
+                <button onclick="showAddAccountForm()">Add New Bank Account</button>
             </div>
         </section>
 
@@ -116,7 +116,7 @@
 
         <!-- Transactions Section -->
         <section id="transactions-section">
-            <h2>💰 Transactions</h2>
+            <h2>Transactions</h2>
             
             <div style="margin-bottom: 20px;">
                 <h3>Perform Transaction</h3>
@@ -173,7 +173,7 @@
 
         <!-- Filter & Reports Section -->
         <section id="filter-section">
-            <h2>🔍 Advanced Filter & Reports</h2>
+            <h2> Advanced Filter & Reports</h2>
             <form id="filter-form">
                 <input type="text" id="filter-name" placeholder="Farmer Name">
                 <input type="text" id="filter-state" placeholder="State">
@@ -227,7 +227,7 @@
 
         <!-- Reports Overview Section -->
         <section id="reports-section">
-            <h2>📊 Bank Overview Report</h2>
+            <h2>Bank Overview Report</h2>
             <button onclick="loadBankOverview()">Load Overview</button>
             <div id="overview-results" style="margin-top: 20px; display: none;">
                 <div style="overflow-x: auto;">
