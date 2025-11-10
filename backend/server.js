@@ -1509,6 +1509,224 @@ app.get('/proc/farmer_transactions/:farmerId', (req, res) => {
   });
 });
 
+// ==========================================
+// BANK MANAGEMENT ROUTES
+// ==========================================
+
+// Get all bank accounts for a farmer
+app.get('/farmers/:id/bank', (req, res) => {
+  const farmerId = req.params.id;
+  const sql = `SELECT * FROM bank_details WHERE Farmer_ID = ? ORDER BY Is_Primary DESC, Bank_ID`;
+  db.query(sql, [farmerId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Add a new bank account
+app.post('/farmers/:id/bank', (req, res) => {
+  const farmerId = req.params.id;
+  const { Bank_Name, Account_Type, Branch, IFSC, Account_Number, Account_Balance, Is_Primary } = req.body;
+
+  const sql = `
+    INSERT INTO bank_details (Farmer_ID, First_Name, Last_Name, Bank_Name, Account_Type, Branch, IFSC, Account_Number, Account_Balance, Is_Primary)
+    SELECT Farmer_ID, First_Name, Last_Name, ?, ?, ?, ?, ?, ?, ?
+    FROM farmer_details WHERE Farmer_ID = ?`;
+
+  db.query(sql, [Bank_Name, Account_Type, Branch, IFSC, Account_Number, Account_Balance, Is_Primary, farmerId], (err, result) => {
+    if (err) return res.status(500).json({ error: err.sqlMessage || err.message });
+    res.json({ message: 'Bank account added successfully', insertId: result.insertId });
+  });
+});
+
+// Update bank account
+app.put('/farmers/:id/bank/:bankId', (req, res) => {
+  const { Bank_Name, Account_Type, Branch, IFSC, Account_Number, Account_Balance } = req.body;
+  const { id, bankId } = req.params;
+
+  const sql = `
+    UPDATE bank_details 
+    SET Bank_Name=?, Account_Type=?, Branch=?, IFSC=?, Account_Number=?, Account_Balance=?
+    WHERE Bank_ID=? AND Farmer_ID=?`;
+
+  db.query(sql, [Bank_Name, Account_Type, Branch, IFSC, Account_Number, Account_Balance, bankId, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Bank account updated successfully' });
+  });
+});
+
+// Delete a bank account
+app.delete('/farmers/:id/bank/:bankId', (req, res) => {
+  const { id, bankId } = req.params;
+  const sql = 'DELETE FROM bank_details WHERE Bank_ID=? AND Farmer_ID=?';
+  db.query(sql, [bankId, id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: 'Bank account deleted successfully' });
+  });
+});
+
+// Set primary account
+app.put('/farmers/:id/bank/:bankId/set-primary', (req, res) => {
+  const { id, bankId } = req.params;
+  const resetSql = 'UPDATE bank_details SET Is_Primary=0 WHERE Farmer_ID=?';
+  const setSql = 'UPDATE bank_details SET Is_Primary=1 WHERE Bank_ID=? AND Farmer_ID=?';
+
+  db.query(resetSql, [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    db.query(setSql, [bankId, id], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ message: 'Primary account updated successfully' });
+    });
+  });
+});
+
+// Get all transactions for a farmer's accounts
+app.get('/farmers/:id/bank/transactions', (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT t.*, b.Bank_Name, b.Account_Number 
+    FROM transaction_logs t
+    JOIN bank_details b ON t.Bank_ID = b.Bank_ID
+    WHERE b.Farmer_ID = ?
+    ORDER BY t.created_at DESC`;
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Add a transaction (Deposit/Withdraw/Transfer)
+app.post('/bank/accounts/:bankId/transactions', (req, res) => {
+  const { bankId } = req.params;
+  const { Transaction_Type, Amount, Description, Reference_Number, To_Bank_ID } = req.body;
+
+  const getSql = 'SELECT Account_Balance FROM bank_details WHERE Bank_ID=?';
+  db.query(getSql, [bankId], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Account not found' });
+
+    const balanceBefore = parseFloat(results[0].Account_Balance);
+    let balanceAfter = balanceBefore;
+
+    if (Transaction_Type === 'Deposit') balanceAfter += Amount;
+    else if (Transaction_Type === 'Withdrawal') {
+      if (Amount > balanceBefore) return res.status(400).json({ error: 'Insufficient balance' });
+      balanceAfter -= Amount;
+    } else if (Transaction_Type === 'Transfer') {
+      if (Amount > balanceBefore) return res.status(400).json({ error: 'Insufficient balance for transfer' });
+      balanceAfter -= Amount;
+      // Add to receiver
+      db.query('UPDATE bank_details SET Account_Balance = Account_Balance + ? WHERE Bank_ID=?', [Amount, To_Bank_ID]);
+    }
+
+    const updateSql = 'UPDATE bank_details SET Account_Balance=? WHERE Bank_ID=?';
+    const logSql = `
+      INSERT INTO transaction_logs (Bank_ID, Transaction_Type, Amount, Balance_Before, Balance_After, Description, Reference_Number)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(updateSql, [balanceAfter, bankId], (err2) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      db.query(logSql, [bankId, Transaction_Type, Amount, balanceBefore, balanceAfter, Description, Reference_Number], (err3) => {
+        if (err3) return res.status(500).json({ error: err3.message });
+        res.json({ message: 'Transaction successful' });
+      });
+    });
+  });
+});
+
+// ==========================================
+// SETUP DATABASE OBJECTS (views, triggers)
+// ==========================================
+app.post("/setup/dbobjects", (req, res) => {
+  const queries = [
+    // 1️⃣ Create farmer-bank summary view
+    `CREATE OR REPLACE VIEW vw_farmer_bank_summary AS
+     SELECT 
+        f.Farmer_ID,
+        CONCAT(f.First_Name, ' ', f.Last_Name) AS Farmer_Name,
+        f.City,
+        f.State,
+        b.Bank_ID,
+        b.Bank_Name,
+        b.Account_Number,
+        b.Account_Type,
+        b.Account_Balance,
+        b.Is_Primary,
+        b.created_at
+     FROM farmer_details f
+     JOIN bank_details b ON f.Farmer_ID = b.Farmer_ID;`,
+
+    // 2️⃣ Create transaction summary view
+    `CREATE OR REPLACE VIEW vw_transaction_summary AS
+     SELECT 
+        t.Transaction_ID,
+        b.Bank_Name,
+        b.Account_Number,
+        f.First_Name,
+        f.Last_Name,
+        t.Transaction_Type,
+        t.Amount,
+        t.Status,
+        t.created_at
+     FROM transaction_logs t
+     JOIN bank_details b ON t.Bank_ID = b.Bank_ID
+     JOIN farmer_details f ON f.Farmer_ID = b.Farmer_ID;`,
+
+    // 3️⃣ Example audit trigger for transaction_logs
+    `CREATE TRIGGER trg_transaction_insert
+     AFTER INSERT ON transaction_logs
+     FOR EACH ROW
+     INSERT INTO audit_logs (Table_Name, Operation, Record_ID, User_ID, New_Value, IP_Address)
+     VALUES ('transaction_logs', 'INSERT', NEW.Transaction_ID, NULL,
+             JSON_OBJECT('Amount', NEW.Amount, 'Transaction_Type', NEW.Transaction_Type), '127.0.0.1');`
+  ];
+
+  let executed = 0;
+  queries.forEach((query) => {
+    db.query(query, (err) => {
+      if (err) console.error("⚠️ SQL Error:", err.sqlMessage);
+      executed++;
+      if (executed === queries.length) {
+        console.log("✅ All setup queries executed");
+        res.json({ message: "Database views and triggers created successfully" });
+      }
+    });
+  });
+});
+
+// ==========================================
+// GET FARMER TRANSACTIONS
+// ==========================================
+app.get('/farmers/:id/bank/transactions', (req, res) => {
+  const farmerId = req.params.id;
+  const { from, to } = req.query;
+  
+  let query = `
+    SELECT t.*, b.Bank_Name, b.Account_Number
+    FROM transaction_logs t
+    JOIN bank_details b ON t.Bank_ID = b.Bank_ID
+    WHERE b.Farmer_ID = ?
+  `;
+  const params = [farmerId];
+
+  if (from) {
+    query += ' AND DATE(t.created_at) >= ?';
+    params.push(from);
+  }
+  if (to) {
+    query += ' AND DATE(t.created_at) <= ?';
+    params.push(to);
+  }
+
+  query += ' ORDER BY t.created_at DESC';
+
+  db.query(query, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
 // ---------------------------
 // Minimal root
 // ---------------------------
@@ -1524,6 +1742,44 @@ app.get('/', (req, res) => {
       view_overview: "/view/farmer_bank_overview"
     }
   });
+});
+
+// ==========================================
+// DATABASE INITIALIZATION ROUTE
+// ==========================================
+app.post('/setup/dbobjects', (req, res) => {
+  try {
+    // Example: automatically create basic triggers, views, etc.
+    const queries = [
+      `CREATE OR REPLACE VIEW vw_farmer_bank_summary AS
+       SELECT f.Farmer_ID, CONCAT(f.First_Name, ' ', f.Last_Name) AS Farmer_Name,
+              b.Bank_Name, b.Account_Number, b.Account_Balance, b.Is_Primary
+       FROM farmer_details f
+       JOIN bank_details b ON f.Farmer_ID = b.Farmer_ID;`,
+
+      `CREATE OR REPLACE VIEW vw_transaction_summary AS
+       SELECT t.Transaction_ID, t.Transaction_Type, t.Amount, t.Status,
+              b.Bank_Name, f.First_Name, f.Last_Name
+       FROM transaction_logs t
+       JOIN bank_details b ON t.Bank_ID = b.Bank_ID
+       JOIN farmer_details f ON f.Farmer_ID = b.Farmer_ID;`
+    ];
+
+    // Run each query sequentially
+    queries.forEach((query) => {
+      db.query(query, (err) => {
+        if (err) console.error('❌ Error creating object:', err.message);
+      });
+    });
+
+    res.json({ message: '✅ Database objects (views/triggers) initialized successfully!' });
+  } catch (error) {
+    console.error('❌ Setup DB error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl });
 });
 
 app.listen(5000, () => console.log("Bank routes server running on http://localhost:5000"));
