@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmer Tax Dashboard | Kisan Seva Portal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    /* Reset & Global */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f9fbe7 0%, #e0f2f1 100%);
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: #146c43;
+      color: #fff;
+      padding: 0 32px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 14px rgba(20,108,67,0.13);
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar-brand {
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .navbar-links {
+      display: flex;
+      list-style: none;
+      gap: 22px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar-links li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .navbar-links li a:hover,
+    .navbar-links li a.active {
+      background: #175b31;
+    }
+
+    /* Main Content */
+    #main-content {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    /* Section Styling */
+    section {
+      margin-bottom: 30px;
+      padding: 25px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      color: #298f48;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+      border-bottom: 2px solid #12ab53;
+      padding-bottom: 10px;
+    }
+
+    /* Farmer Selection */
+    .farmer-select-container {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-wrapper input {
+      width: 100%;
+      padding: 12px 40px 12px 15px;
+      font-size: 15px;
+      border: 2px solid #d2d2d2;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrapper input:focus {
+      border-color: #2ecc71;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      font-size: 18px;
+    }
+
+    select {
+      padding: 12px 15px;
+      font-size: 15px;
+      border: 2px solid #d2d2d2;
+      border-radius: 8px;
+      outline: none;
+      min-width: 200px;
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    select:focus {
+      border-color: #2ecc71;
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #f1fdf4 0%, #e8f5e9 100%);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 15px rgba(18,171,83,0.15);
+      border-left: 5px solid;
+      transition: transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(18,171,83,0.25);
+    }
+
+    .summary-card.due { border-color: #f39c12; background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%); }
+    .summary-card.overdue { border-color: #c0392b; background: linear-gradient(135deg, #ffe6e6 0%, #f8d7da 100%); }
+    .summary-card.paid { border-color: #2ecc71; background: linear-gradient(135deg, #e6fff0 0%, #d4edda 100%); }
+    .summary-card.exempted { border-color: #4b6584; background: linear-gradient(135deg, #e8eaed 0%, #d6d8db 100%); }
+
+    .summary-card .label {
+      font-size: 14px;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .summary-card .value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #145a32;
+    }
+
+    .summary-card .icon {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.15;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Chart Container */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .chart-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      min-height: 300px;
+    }
+
+    .chart-box h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    .chart-box canvas {
+      max-height: 250px;
+    }
+
+    /* Filters */
+    .filter-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filter-form input,
+    .filter-form select {
+      padding: 10px 14px;
+      font-size: 15px;
+      border-radius: 7px;
+      border: 1.5px solid #d2d2d2;
+      outline: none;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      grid-column: 1 / -1;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #12ab53;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 7px;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      filter: brightness(0.92);
+    }
+
+    button.secondary {
+      background: #adb5bd;
+    }
+
+    button.export {
+      background: #17a2b8;
+    }
+
+    button:disabled {
+      background: #d2d2d2;
+      cursor: not-allowed;
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 11px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #15a963 40%, #7fe5b0 100%);
+      color: #fff;
+    }
+
+    th, td {
+      padding: 13px 10px;
+      text-align: left;
+      border-bottom: 1px solid #f1f1f1;
+    }
+
+    th {
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th:hover {
+      background: rgba(0,0,0,0.1);
+    }
+
+    tbody tr:hover {
+      background: #e8f5e9;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-Paid { background: #d4edda; color: #155724; }
+    .status-Unpaid { background: #fff3cd; color: #856404; }
+    .status-Overdue { background: #f8d7da; color: #721c24; }
+    .status-Exempted { background: #d6d8db; color: #383d41; }
+
+    /* Notifications */
+    .notification-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .notification-item {
+      background: #e7f3ff;
+      padding: 15px;
+      border-left: 4px solid #0066cc;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      transition: transform 0.2s;
+    }
+
+    .notification-item:hover {
+      transform: translateX(5px);
+    }
+
+    .notification-item.warning {
+      background: #fff3cd;
+      border-color: #ffc107;
+    }
+
+    .notification-item.danger {
+      background: #f8d7da;
+      border-color: #dc3545;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      color: #0066cc;
+      margin-bottom: 5px;
+    }
+
+    .notification-item.warning .notification-title {
+      color: #856404;
+    }
+
+    .notification-item.danger .notification-title {
+      color: #721c24;
+    }
+
+    .notification-date {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 15px;
+      opacity: 0.3;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #12ab53;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .stats-bar-item {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .stats-bar-item strong {
+      color: #222;
+      margin-left: 5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #main-content {
+        padding: 10px;
+      }
+      
+      section {
+        padding: 15px;
+      }
+      
+      .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+      }
+      
+      .navbar-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+      }
+      
+      .filter-form {
+        grid-template-columns: 1fr;
+      }
+      
+      table {
+        font-size: 14px;
+      }
+
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🌾 Kisan Seva Portal</div>
+    <ul class="navbar-links">
+      <li><a href="farmer.html">Farmer Portal</a></li>
+      <li><a href="#" class="active">Tax Portal</a></li>
+      <li><a href="#reports">Reports</a></li>
+    </ul>
+  </nav>
+
+  <div id="main-content">
+    <!-- Farmer Selection -->
+    <section id="farmer-selection">
+      <h2> Select Farmer</h2>
+      <div class="farmer-select-container">
+        <div class="search-wrapper">
+          <input type="text" id="farmerSearch" placeholder="Search by name, email, or ID..." autocomplete="off">
+          <span class="search-icon">search</span>
+        </div>
+        <select id="farmerDropdown">
+          <option value="">Select a farmer...</option>
+        </select>
+        <button id="refreshBtn">Refresh</button>
+      </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <div id="dashboardContent" style="display: none;">
+      
+      <!-- Tax Summary Cards -->
+      <section id="tax-summary">
+        <h2>Tax Summary</h2>
+        <div class="summary-grid">
+          <div class="summary-card due">
+            <span class="icon"></span>
+            <div class="label">Total Due</div>
+            <div class="value">₹<span id="totalDue">0.00</span></div>
+          </div>
+          <div class="summary-card overdue">
+            <span class="icon"></span>
+            <div class="label">Overdue Amount</div>
+            <div class="value">₹<span id="overdueAmount">0.00</span></div>
+          </div>
+          <div class="summary-card paid">
+            <span class="icon"></span>
+            <div class="label">Paid Taxes</div>
+            <div class="value">₹<span id="paidAmount">0.00</span></div>
+          </div>
+          <div class="summary-card exempted">
+            <span class="icon"></span>
+            <div class="label">Exempted Taxes</div>
+            <div class="value">₹<span id="exemptedAmount">0.00</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section id="charts-section">
+        <h2>Analytics</h2>
+        <div class="chart-grid">
+          <div class="chart-box">
+            <h3>Tax Status Distribution</h3>
+            <canvas id="statusChart"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>Tax Amount by Type</h3>
+            <canvas id="typeChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section id="notifications-section">
+        <h2> Important Notifications</h2>
+        <div class="notification-container" id="notificationContainer">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading notifications...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tax Records with Filters -->
+      <section id="tax-records-section">
+        <h2>Tax Records</h2>
+        
+        <form class="filter-form" id="taxFilterForm">
+          <input type="text" id="taxTypeFilter" placeholder="Tax Type">
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Exempted">Exempted</option>
+          </select>
+          <input type="date" id="dueDateStart" placeholder="From Date">
+          <input type="date" id="dueDateEnd" placeholder="To Date">
+          <input type="number" id="minAmount" placeholder="Min Amount" step="0.01">
+          <input type="number" id="maxAmount" placeholder="Max Amount" step="0.01">
+          
+          <div class="filter-actions">
+            <button type="submit">Apply Filters</button>
+            <button type="button" class="secondary" id="resetFilters">Reset</button>
+            <button type="button" class="export" id="exportBtn">Export CSV</button>
+          </div>
+        </form>
+
+        <div class="stats-bar">
+          <div class="stats-bar-item">
+            Showing <strong id="recordCount">0</strong> records
+          </div>
+          <div class="stats-bar-item">
+            Total Amount: <strong>₹<span id="totalAmount">0.00</span></strong>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="taxTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0)">Tax Type ⇅</th>
+                <th onclick="sortTable(1)">Amount ⇅</th>
+                <th onclick="sortTable(2)">Penalty ⇅</th>
+                <th onclick="sortTable(3)">Status ⇅</th>
+                <th onclick="sortTable(4)">Due Date ⇅</th>
+                <th onclick="sortTable(5)">Payment Date ⇅</th>
+                <th>Period</th>
+              </tr>
+            </thead>
+            <tbody id="taxTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Transaction History -->
+      <section id="transactions-section">
+        <h2>💳 Transaction History</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="transactionTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state">
+      <div class="empty-state-icon"></div>
+      <h3>No Farmer Selected</h3>
+      <p>Please select a farmer from the dropdown above to view their tax details</p>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:5000';
+    let currentFarmerId = null;
+    let currentFarmerName = '';
+    let allTaxRecords = [];
+    let sortDirection = {};
+    let statusChartInstance = null;
+    let typeChartInstance = null;
+
+    // Load farmers on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFarmers();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      document.getElementById('farmerSearch').addEventListener('input', debounce(handleSearch, 300));
+      document.getElementById('farmerDropdown').addEventListener('change', handleFarmerSelect);
+      document.getElementById('refreshBtn').addEventListener('click', loadFarmers);
+      document.getElementById('taxFilterForm').addEventListener('submit', handleFilterSubmit);
+      document.getElementById('resetFilters').addEventListener('click', resetFilters);
+      document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+    }
+
+    async function loadFarmers(filter = '') {
+      try {
+        const url = filter 
+          ? `${apiBase}/farmers/filter?name=${encodeURIComponent(filter)}`
+          : `${apiBase}/farmers`;
+        
+        const res = await fetch(url);
+        const farmers = await res.json();
+        
+        const dropdown = document.getElementById('farmerDropdown');
+        dropdown.innerHTML = '<option value="">Select a farmer...</option>';
+        
+        farmers.forEach(farmer => {
+          const option = document.createElement('option');
+          option.value = farmer.Farmer_ID;
+          option.textContent = `${farmer.First_Name} ${farmer.Last_Name} - ${farmer.Email_ID}`;
+          dropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading farmers:', error);
+        alert('Failed to load farmers. Make sure the server is running on port 5000.');
+      }
+    }
+
+    function handleSearch(e) {
+      const query = e.target.value.trim();
+      loadFarmers(query);
+    }
+
+    async function handleFarmerSelect(e) {
+      currentFarmerId = e.target.value;
+      
+      if (!currentFarmerId) {
+        document.getElementById('dashboardContent').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      currentFarmerName = selectedOption.textContent;
+      
+      document.getElementById('dashboardContent').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      
+      await loadDashboardData();
+    }
+
+    async function loadDashboardData() {
+      await Promise.all([
+        loadTaxSummary(),
+        loadNotifications(),
+        loadTaxRecords(),
+        loadTransactions()
+      ]);
+    }
+
+    async function loadTaxSummary() {
+      try {
+        const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/tax`);
+        const taxes = await res.json();
+        
+        let totalDue = 0, overdue = 0, paid = 0, exempted = 0;
+        const statusCounts = { Paid: 0, Unpaid: 0, Overdue: 0, Exempted: 0 };
+        const typeAmounts = {};
+        
+        taxes.forEach(tax => {
+          const amount = parseFloat(tax.Tax_Amount) + (parseFloat(tax.Penalty_Amount) || 0);
+          
+          // Status counts for chart
+          statusCounts[tax.Current_Status]++;
+          
+          // Type amounts for chart
+          typeAmounts[tax.Tax_Type] = (typeAmounts[tax.Tax_Type] || 0) + parseFloat(tax.Tax_Amount);
+          
+          switch(tax.Current_Status) {
+            case 'Unpaid':
+            case 'Overdue':
+              totalDue += amount;
+              if (tax.Current_Status === 'Overdue') overdue += amount;
+              break;
+            case 'Paid':
+              paid += parseFloat(tax.Tax_Amount);
+              break;
+            case 'Exempted':
+              exempted += parseFloat(tax.Tax_Amount);
+              break;
+          }
+        });
+        
+        document.getElementById('totalDue').textContent = totalDue.toFixed(2);
+        document.getElementById('overdueAmount').textContent = overdue.toFixed(2);
+        document.getElementById('paidAmount').textContent = paid.toFixed(2);
+        document.getElementById('exemptedAmount').textContent = exempted.toFixed(2);
+        
+        // Render charts
+        renderStatusChart(statusCounts);
+        renderTypeChart(typeAmounts);
+        
+      } catch (error) {
+        console.error('Error loading tax summary:', error);
+      }
+    }
+
+    function renderStatusChart(data) {
+      const ctx = document.getElementById('statusChart').getContext('2d');
+      
+      if (statusChartInstance) {
+        statusChartInstance.destroy();
+      }
+      
+      statusChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            data: Object.values(data),
+            backgroundColor: ['#2ecc71', '#f39c12', '#c0392b', '#4b6584'],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    function renderTypeChart(data) {
+      const ctx = document.getElementById('typeChart').getContext('2d');
+      
+      if (typeChartInstance) {
+        typeChartInstance.destroy();
+      }
+      
+      typeChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            label: 'Tax Amount (₹)',
+            data: Object.values(data),
+            backgroundColor: '#12ab53',
+            borderColor: '#146c43',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+    }
+
+    async function loadNotifications() {
+      const container = document.getElementById('notificationContainer');
+      
+      try {
+        const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/notifications?category=Tax`);
+        const notifications = await res.json();
+        
+        container.innerHTML = '';
+        
+        if (notifications.length === 0) {
+          // Generate from tax data
+          const taxRes = await fetch(`${apiBase}/farmers/${currentFarmerId}/tax`);
+          const taxes = await taxRes.json();
+          
+          taxes.forEach(tax => {
+            if (tax.Current_Status === 'Overdue') {
+              const notif = document.createElement('div');
+              notif.className = 'notification-item danger';
+              notif.innerHTML = `
+                <div class="notification-title"> Overdue Tax Payment</div>
+                <div>${tax.Tax_Type} payment of ₹${tax.Tax_Amount} is overdue since ${formatDate(tax.Due_Date)}</div>
+                <div class="notification-date">Please pay immediately to avoid additional penalties</div>
+              `;
+              container.appendChild(notif);
+            } else if (tax.Current_Status === 'Unpaid') {
+              const dueDate = new Date(tax.Due_Date);
+              const today = new Date();
+              const daysUntil = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+              
+              if (daysUntil <= 30 && daysUntil > 0) {
+                const notif = document.createElement('div');
+                notif.className = 'notification-item warning';
+                notif.innerHTML = `
+                  <div class="notification-title"> Upcoming Payment</div>
+                  <div>${tax.Tax_Type} payment of ₹${tax.Tax_Amount} due in ${daysUntil} days</div>
+                  <div class="notification-date">Due date: ${formatDate(tax.Due_Date)}</div>
+                `;
+                container.appendChild(notif);
+              }
+            }
+          });
+          
+          if (container.children.length === 0) {
+            container.innerHTML = '<div class="notification-item"><div class="notification-title">All Clear</div><div>No pending notifications. All taxes are up to date!</div></div>';
+          }
+        } else {
+          notifications.forEach(n => {
+            const notif = document.createElement('div');
+            const typeClass = n.Type === 'Alert' ? 'danger' : n.Type === 'Warning' ? 'warning' : '';
+            notif.className = `notification-item ${typeClass}`;
+            notif.innerHTML = `
+              <div class="notification-title">${n.Title}</div>
+              <div>${n.Message}</div>
+              <div class="notification-date">${formatDate(n.created_at)}</div>
+            `;
+            container.appendChild(notif);
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+        container.innerHTML = '<div class="empty-state"><p>Failed to load notifications</p></div>';
+      }
+    }
+
+    async function loadTaxRecords(filters = {}) {
+      const tbody = document.getElementById('taxTableBody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Loading...</td></tr>';
+      
+      try {
+        const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/tax`);
+        let taxes = await res.json();
+        
+        // Apply filters
+        if (filters.taxType) {
+          taxes = taxes.filter(t => t.Tax_Type.toLowerCase().includes(filters.taxType.toLowerCase()));
+        }
+        if (filters.status) {
+          taxes = taxes.filter(t => t.Current_Status === filters.status);
+        }
+        if (filters.dueDateStart) {
+          taxes = taxes.filter(t => new Date(t.Due_Date) >= new Date(filters.dueDateStart));
+        }
+        if (filters.dueDateEnd) {
+          taxes = taxes.filter(t => new Date(t.Due_Date) <= new Date(filters.dueDateEnd));
+        }
+        if (filters.minAmount) {
+          taxes = taxes.filter(t => parseFloat(t.Tax_Amount) >= parseFloat(filters.minAmount));
+        }
+        if (filters.maxAmount) {
+          taxes = taxes.filter(t => parseFloat(t.Tax_Amount) <= parseFloat(filters.maxAmount));
+        }
+        
+        allTaxRecords = taxes;
+        displayTaxRecords(taxes);
+        
+      } catch (error) {
+        console.error('Error loading tax records:', error);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Failed to load records. Check console for details.</td></tr>';
+      }
+    }
+
+    function displayTaxRecords(taxes) {
+      const tbody = document.getElementById('taxTableBody');
+      tbody.innerHTML = '';
+      
+      if (taxes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No records found</td></tr>';
+        document.getElementById('recordCount').textContent = '0';
+        document.getElementById('totalAmount').textContent = '0.00';
+        return;
+      }
+      
+      let totalAmount = 0;
+      
+      taxes.forEach(tax => {
+        const tr = document.createElement('tr');
+        const amount = parseFloat(tax.Tax_Amount);
+        const penalty = parseFloat(tax.Penalty_Amount) || 0;
+        totalAmount += amount + penalty;
+        
+        tr.innerHTML = `
+          <td>${tax.Tax_Type}</td>
+          <td>₹${amount.toFixed(2)}</td>
+          <td>₹${penalty.toFixed(2)}</td>
+          <td><span class="status-badge status-${tax.Current_Status}">${tax.Current_Status}</span></td>
+          <td>${formatDate(tax.Due_Date)}</td>
+          <td>${tax.Payment_Date ? formatDate(tax.Payment_Date) : '-'}</td>
+          <td>${tax.Tax_Period}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      document.getElementById('recordCount').textContent = taxes.length;
+      document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+    }
+
+    async function loadTransactions(page = 1) {
+      const tbody = document.getElementById('transactionTableBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+      
+      try {
+        const res = await fetch(`${apiBase}/farmers/${currentFarmerId}/transactions?page=${page}&pageSize=10`);
+        const data = await res.json();
+        
+        tbody.innerHTML = '';
+        
+        if (!data.transactions || data.transactions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No transactions found</td></tr>';
+          return;
+        }
+        
+        data.transactions.forEach(tx => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${tx.Transaction_Type.replace(/_/g, ' ')}</td>
+            <td>₹${parseFloat(tx.Amount).toFixed(2)}</td>
+            <td>${formatDate(tx.created_at)}</td>
+            <td>${tx.Description || '-'}</td>
+            <td><span class="status-badge status-${tx.Status}">${tx.Status}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No bank account linked or no transactions</td></tr>';
+      }
+    }
+
+    function handleFilterSubmit(e) {
+      e.preventDefault();
+      
+      const filters = {
+        taxType: document.getElementById('taxTypeFilter').value.trim(),
+        status: document.getElementById('statusFilter').value,
+        dueDateStart: document.getElementById('dueDateStart').value,
+        dueDateEnd: document.getElementById('dueDateEnd').value,
+        minAmount: document.getElementById('minAmount').value,
+        maxAmount: document.getElementById('maxAmount').value
+      };
+      
+      loadTaxRecords(filters);
+    }
+
+    function resetFilters() {
+      document.getElementById('taxFilterForm').reset();
+      loadTaxRecords();
+    }
+
+    function sortTable(columnIndex) {
+      const tbody = document.getElementById('taxTableBody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      
+      if (rows.length === 0 || rows[0].cells.length < columnIndex) return;
+      
+      const direction = sortDirection[columnIndex] === 'asc' ? 'desc' : 'asc';
+      sortDirection = { [columnIndex]: direction };
+      
+      rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        
+        // Handle numbers
+        const aNum = parseFloat(aText.replace(/[^0-9.-]/g, ''));
+        const bNum = parseFloat(bText.replace(/[^0-9.-]/g, ''));
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+        
+        // Handle dates
+        const aDate = new Date(aText);
+        const bDate = new Date(bText);
+        
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          return direction === 'asc' ? aDate - bDate : bDate - aDate;
+        }
+        
+        // Handle strings
+        return direction === 'asc' 
+          ? aText.localeCompare(bText)
+          : bText.localeCompare(aText);
+      });
+      
+      tbody.innerHTML = '';
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function exportToCSV() {
+      if (allTaxRecords.length === 0) {
+        alert('No records to export');
+        return;
+      }
+      
+      const headers = ['Tax Type', 'Amount', 'Penalty', 'Status', 'Due Date', 'Payment Date', 'Period'];
+      const rows = allTaxRecords.map(tax => [
+        tax.Tax_Type,
+        tax.Tax_Amount,
+        tax.Penalty_Amount || 0,
+        tax.Current_Status,
+        formatDate(tax.Due_Date),
+        tax.Payment_Date ? formatDate(tax.Payment_Date) : '-',
+        tax.Tax_Period
+      ]);
+      
+      let csvContent = headers.join(',') + '\n';
+      rows.forEach(row => {
+        csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tax_records_farmer_${currentFarmerId}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-IN', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('farmerSearch').focus();
+      }
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        exportToCSV();
+      }
+    });
+  </script>
+</body>
+</html>
